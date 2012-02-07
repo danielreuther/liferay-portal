@@ -67,7 +67,7 @@ public class JasperVersionDetector {
 			Attributes attributes = manifest.getMainAttributes();
 
 			_jasperVersion = GetterUtil.getString(
-				attributes.getValue("Specification-Version"));
+				attributes.getValue("Implementation-Version"));
 		}
 		catch (Exception e) {
 			_log.error(e, e);
