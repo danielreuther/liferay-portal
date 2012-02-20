@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.File;
 
@@ -68,6 +69,11 @@ public class JasperVersionDetector {
 
 			_jasperVersion = GetterUtil.getString(
 				attributes.getValue("Implementation-Version"));
+
+			if (Validator.isNull(_jasperVersion)) {
+				_jasperVersion = GetterUtil.getString(
+					attributes.getValue("Bundle-Version"));
+			}
 		}
 		catch (Exception e) {
 			_log.error(e, e);
