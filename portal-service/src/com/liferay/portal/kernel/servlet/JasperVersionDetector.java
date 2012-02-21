@@ -67,31 +67,23 @@ public class JasperVersionDetector {
 
 			Attributes attributes = manifest.getMainAttributes();
 
-			if (attributes.containsKey("Specification-Version")) {
-				_jasperVersion = GetterUtil.getString(
-					attributes.getValue("Specification-Version"));
+			String jasperVersion = GetterUtil.getString(
+				attributes.getValue("Specification-Version"));
 
-				if (Validator.isNotNull(_jasperVersion)) {
-					return;
-				}
-			}
+			if (Validator.isNull(jasperVersion) ||
+				!Character.isDigit(jasperVersion.charAt(0))) {
 
-			if (attributes.containsKey("Implementation-Version")) {
-				_jasperVersion = GetterUtil.getString(
+				jasperVersion = GetterUtil.getString(
 					attributes.getValue("Implementation-Version"));
 
-				if (Validator.isNotNull(_jasperVersion)) {
-					return;
+				if (Validator.isNull(jasperVersion)) {
+					jasperVersion = GetterUtil.getString(
+						attributes.getValue("Bundle-Version"));
 				}
 			}
 
-			if (attributes.containsKey("Bundle-Version")) {
-				_jasperVersion = GetterUtil.getString(
-					attributes.getValue("Bundle-Version"));
-
-				if (Validator.isNotNull(_jasperVersion)) {
-					return;
-				}
+			if (Validator.isNotNull(jasperVersion)) {
+				_jasperVersion = jasperVersion;
 			}
 		}
 		catch (Exception e) {
