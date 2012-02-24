@@ -184,6 +184,7 @@ import com.liferay.portlet.social.model.SocialRelationConstants;
 import com.liferay.portlet.social.util.FacebookUtil;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.util.Encryptor;
+import com.liferay.util.EncryptorException;
 import com.liferay.util.JS;
 import com.liferay.util.PwdGenerator;
 import com.liferay.util.UniqueList;
@@ -5738,14 +5739,19 @@ public class PortalImpl implements Portal {
 			doAsUserId = GetterUtil.getLong(
 				Encryptor.decrypt(company.getKeyObj(), doAsUserIdString));
 		}
-		catch (Exception e) {
+		catch (EncryptorException ee) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
 					"Unable to impersonate " + doAsUserIdString +
-						" because the string cannot be decrypted",
-					e);
+						" because the string cannot be decrypted: " +
+					ee.getMessage());
 			}
 
+			return 0;
+		}
+		catch (Exception e) {
+			_log.error(e);
+			
 			return 0;
 		}
 
