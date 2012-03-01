@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.Validator;
 
 import java.io.File;
 
@@ -67,28 +66,56 @@ public class JasperVersionDetector {
 
 			Attributes attributes = manifest.getMainAttributes();
 
-			String jasperVersion = GetterUtil.getString(
-				attributes.getValue("Specification-Version"));
+			if (attributes.containsKey("Specification-Version")) {
+				_jasperVersion = GetterUtil.getString(
+					attributes.getValue("Specification-Version"));
 
-			if (Validator.isNull(jasperVersion) ||
-				!Character.isDigit(jasperVersion.charAt(0))) {
-
-				jasperVersion = GetterUtil.getString(
-					attributes.getValue("Implementation-Version"));
-
-				if (Validator.isNull(jasperVersion)) {
-					jasperVersion = GetterUtil.getString(
-						attributes.getValue("Bundle-Version"));
+				if (isValidJasperVersion(_jasperVersion)) {
+					return;
 				}
 			}
 
-			if (Validator.isNotNull(jasperVersion)) {
-				_jasperVersion = jasperVersion;
+			if (attributes.containsKey("Implementation-Version")) {
+				_jasperVersion = GetterUtil.getString(
+					attributes.get("Implementation-Version"));
+
+				if (isValidJasperVersion(_jasperVersion)) {
+					return;
+				}
+			}
+
+			if (attributes.containsKey("Bundle-Version")) {
+				_jasperVersion = GetterUtil.getString(
+					attributes.get("Bundle-Version"));
+
+				if (isValidJasperVersion(_jasperVersion)) {
+					return;
+				}
 			}
 		}
 		catch (Exception e) {
 			_log.error(e, e);
 		}
+	}
+
+	private boolean isValidJasperVersion(String jasperVersion) {
+		if ((jasperVersion == null) || (jasperVersion.length() == 0)) {
+			return false;
+		}
+
+		boolean numberFound = false;
+
+		for (int i = 0; i < jasperVersion.length(); i++) {
+			if (Character.isDigit(jasperVersion.charAt(i))) {
+				numberFound = true;
+			}
+		}
+
+		if (numberFound) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(
