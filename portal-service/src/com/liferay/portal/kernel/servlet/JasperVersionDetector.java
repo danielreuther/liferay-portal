@@ -103,16 +103,10 @@ public class JasperVersionDetector {
 			return false;
 		}
 
-		boolean numberFound = false;
-
 		for (int i = 0; i < jasperVersion.length(); i++) {
 			if (Character.isDigit(jasperVersion.charAt(i))) {
-				numberFound = true;
+				return true;
 			}
-		}
-
-		if (numberFound) {
-			return true;
 		}
 
 		return false;
