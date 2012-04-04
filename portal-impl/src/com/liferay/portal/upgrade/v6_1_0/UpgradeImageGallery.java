@@ -295,8 +295,6 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			name = GetterUtil.getString(image.getImageId());
 		}
 
-		name = name + StringPool.PERIOD + image.getType();
-
 		if (DLStoreUtil.hasFile(companyId, repositoryId, name)) {
 			DLStoreUtil.deleteFile(companyId, repositoryId, name);
 		}
