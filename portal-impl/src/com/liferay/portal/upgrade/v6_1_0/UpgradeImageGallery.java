@@ -298,7 +298,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			DLStoreUtil.deleteFile(companyId, repositoryId, name);
 		}
 
-		DLStoreUtil.addFile(companyId, repositoryId, name, true, bytes);
+		DLStoreUtil.addFile(companyId, repositoryId, name, false, bytes);
 	}
 
 	protected void migrateImage(long imageId) throws Exception {
