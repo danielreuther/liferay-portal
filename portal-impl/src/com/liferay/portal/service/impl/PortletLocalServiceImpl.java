@@ -1141,7 +1141,12 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 		String strutsPath = portletModel.getStrutsPath();
 
 		if (Validator.isNotNull(strutsPath)) {
-			if (_portletIdsByStrutsPath.containsKey(strutsPath)) {
+			String portletIdByStrutsPath = _portletIdsByStrutsPath.get(
+				strutsPath);
+
+			if (portletIdByStrutsPath != null &&
+					!portletIdByStrutsPath.equals(portletId)) {
+
 				_log.warn("Duplicate struts path " + strutsPath);
 			}
 
