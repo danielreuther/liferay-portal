@@ -346,7 +346,7 @@ public class DLPortletDataHandlerImpl extends BasePortletDataHandler {
 								originalTitle + StringPool.SPACE + i;
 							titleWithExtension = originalTitle + dotExtension;
 
-							existingTitleFileEntry = FileEntryUtil.findByR_F_T(
+							existingTitleFileEntry = FileEntryUtil.fetchByR_F_T(
 								portletDataContext.getScopeGroupId(), folderId,
 								titleWithExtension);
 
