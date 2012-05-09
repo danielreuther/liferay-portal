@@ -374,7 +374,7 @@
 	</library>
 	<library>
 		<file-name>development/jetty-server.jar</file-name>
-		<version>7.5.4</version>
+		<version>7.6.3</version>
 		<project-name>Jetty</project-name>
 		<project-url>http://www.eclipse.org/jetty</project-url>
 		<licenses>
@@ -388,7 +388,7 @@
 	</library>
 	<library>
 		<file-name>development/jetty-util.jar</file-name>
-		<version>7.5.4</version>
+		<version>7.6.3</version>
 		<project-name>Jetty</project-name>
 		<project-url>http://www.eclipse.org/jetty</project-url>
 		<licenses>
@@ -512,6 +512,9 @@
 				<license-name>Sun Binary Code License Agreement</license-name>
 			</license>
 		</licenses>
+		<comments>
+			See LPS-27200.
+		</comments>
 	</library>
 	<library>
 		<file-name>development/jtds.jar</file-name>
