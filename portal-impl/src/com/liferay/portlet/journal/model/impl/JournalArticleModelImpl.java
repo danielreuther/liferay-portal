@@ -786,7 +786,9 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	}
 
 	public Map<Locale, String> getTitleMap() {
-		return LocalizationUtil.getLocalizationMap(getTitle());
+		String defaultLocale = LocalizationUtil.getDefaultLocale(getContent());
+
+		return LocalizationUtil.getLocalizationMap(getTitle(), defaultLocale);
 	}
 
 	public void setTitle(String title) {

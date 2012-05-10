@@ -95,6 +95,17 @@ public class LocalizationImpl implements Localization {
 	public String getLocalization(
 		String xml, String requestedLanguageId, boolean useDefault) {
 
+		String defaultLanguageId = LocaleUtil.toLanguageId(
+			LocaleUtil.getDefault());
+
+		return getLocalization(
+			xml, requestedLanguageId, defaultLanguageId, useDefault);
+	}
+
+	public String getLocalization(
+		String xml, String requestedLanguageId, String defaultLanguageId,
+		boolean useDefault) {
+
 		String value = _getCachedValue(xml, requestedLanguageId, useDefault);
 
 		if (value != null) {
@@ -103,9 +114,6 @@ public class LocalizationImpl implements Localization {
 		else {
 			value = StringPool.BLANK;
 		}
-
-		String systemDefaultLanguageId = LocaleUtil.toLanguageId(
-			LocaleUtil.getDefault());
 
 		String priorityLanguageId = null;
 
@@ -123,9 +131,7 @@ public class LocalizationImpl implements Localization {
 		}
 
 		if (!Validator.isXml(xml)) {
-			if (useDefault ||
-				requestedLanguageId.equals(systemDefaultLanguageId)) {
-
+			if (useDefault || requestedLanguageId.equals(defaultLanguageId)) {
 				value = xml;
 			}
 
@@ -152,18 +158,18 @@ public class LocalizationImpl implements Localization {
 			xmlStreamReader = xmlInputFactory.createXMLStreamReader(
 				new UnsyncStringReader(xml));
 
-			String defaultLanguageId = StringPool.BLANK;
+			String titleDefaultLanguageId = StringPool.BLANK;
 
 			// Skip root node
 
 			if (xmlStreamReader.hasNext()) {
 				xmlStreamReader.nextTag();
 
-				defaultLanguageId = xmlStreamReader.getAttributeValue(
+				titleDefaultLanguageId = xmlStreamReader.getAttributeValue(
 					null, _DEFAULT_LOCALE);
 
-				if (Validator.isNull(defaultLanguageId)) {
-					defaultLanguageId = systemDefaultLanguageId;
+				if (Validator.isNull(titleDefaultLanguageId)) {
+					titleDefaultLanguageId = defaultLanguageId;
 				}
 			}
 
@@ -180,16 +186,16 @@ public class LocalizationImpl implements Localization {
 						null, _LANGUAGE_ID);
 
 					if (Validator.isNull(languageId)) {
-						languageId = defaultLanguageId;
+						languageId = titleDefaultLanguageId;
 					}
 
-					if (languageId.equals(defaultLanguageId) ||
+					if (languageId.equals(titleDefaultLanguageId) ||
 						languageId.equals(priorityLanguageId) ||
 						languageId.equals(requestedLanguageId)) {
 
 						String text = xmlStreamReader.getElementText();
 
-						if (languageId.equals(defaultLanguageId)) {
+						if (languageId.equals(titleDefaultLanguageId)) {
 							defaultValue = text;
 						}
 
@@ -287,6 +293,15 @@ public class LocalizationImpl implements Localization {
 	}
 
 	public Map<Locale, String> getLocalizationMap(String xml) {
+		String defaultLanguageId = LocaleUtil.toLanguageId(
+			LocaleUtil.getDefault());
+
+		return getLocalizationMap(xml, defaultLanguageId);
+	}
+
+	public Map<Locale, String> getLocalizationMap(
+		String xml, String defaultLanguageId) {
+
 		Locale[] locales = LanguageUtil.getAvailableLocales();
 
 		Map<Locale, String> map = new HashMap<Locale, String>();
@@ -294,7 +309,8 @@ public class LocalizationImpl implements Localization {
 		for (Locale locale : locales) {
 			String languageId = LocaleUtil.toLanguageId(locale);
 
-			map.put(locale, getLocalization(xml, languageId, false));
+			map.put(locale, getLocalization(
+				xml, languageId, defaultLanguageId, false));
 		}
 
 		return map;

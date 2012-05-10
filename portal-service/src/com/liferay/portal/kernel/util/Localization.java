@@ -97,6 +97,10 @@ public interface Localization {
 	public String getLocalization(
 		String xml, String requestedLanguageId, boolean useDefault);
 
+	public String getLocalization(
+		String xml, String requestedLanguageId, String defaultLanguageId,
+		boolean useDefault);
+
 	/**
 	 * Returns a map of locales and localized strings for the parameter in the
 	 * preferences container.
@@ -131,6 +135,9 @@ public interface Localization {
 	 * @return the locales and localized strings
 	 */
 	public Map<Locale, String> getLocalizationMap(String xml);
+
+	public Map<Locale, String> getLocalizationMap(
+		String xml, String defaultLanguageId);
 
 	/**
 	 * Returns a map of locales and localized strings for the given languageIds

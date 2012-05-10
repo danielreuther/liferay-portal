@@ -65,6 +65,14 @@ public class LocalizationUtil {
 			xml, requestedLanguageId, useDefault);
 	}
 
+	public static String getLocalization(
+		String xml, String requestedLanguageId, String defaultLanguageId,
+		boolean useDefault) {
+
+		return getLocalization().getLocalization(
+			xml, requestedLanguageId, defaultLanguageId, useDefault);
+	}
+
 	public static Map<Locale, String> getLocalizationMap(
 		PortletPreferences preferences, String parameter) {
 
@@ -79,6 +87,12 @@ public class LocalizationUtil {
 
 	public static Map<Locale, String> getLocalizationMap(String xml) {
 		return getLocalization().getLocalizationMap(xml);
+	}
+
+	public static Map<Locale, String> getLocalizationMap(
+		String xml, String defaultLanguageId) {
+
+		return getLocalization().getLocalizationMap(xml, defaultLanguageId);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
