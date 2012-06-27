@@ -20,6 +20,8 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -289,6 +291,14 @@ public class LocalizationImpl implements Localization {
 
 	public Map<Locale, String> getLocalizationMap(String xml) {
 		Locale[] locales = LanguageUtil.getAvailableLocales();
+
+		Locale defaultLocale = LocaleThreadLocal.getDefaultLocale();
+
+		if (Validator.isNotNull(defaultLocale) &&
+			!ArrayUtil.contains(locales, defaultLocale)) {
+
+			locales = ArrayUtil.append(locales, defaultLocale);
+		}
 
 		Map<Locale, String> map = new HashMap<Locale, String>();
 
