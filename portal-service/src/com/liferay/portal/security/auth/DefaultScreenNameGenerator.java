@@ -46,9 +46,7 @@ public class DefaultScreenNameGenerator implements ScreenNameGenerator {
 				emailAddress, CharPool.AT).toLowerCase();
 
 			for (char c : screenName.toCharArray()) {
-				if ((!_USERS_SCREEN_NAME_ALLOW_NUMERIC &&
-					 Validator.isDigit(c)) ||
-					(!Validator.isChar(c) && (c != CharPool.DASH) &&
+				if ((!Validator.isChar(c) && (c != CharPool.DASH) &&
 					 (c != CharPool.PERIOD))) {
 
 					screenName = StringUtil.replace(
@@ -64,6 +62,10 @@ public class DefaultScreenNameGenerator implements ScreenNameGenerator {
 		}
 		else {
 			screenName = String.valueOf(userId);
+		}
+		
+		if (!_USERS_SCREEN_NAME_ALLOW_NUMERIC && Validator.isNumber(screenName)){
+			screenName = "user_".concat(screenName);
 		}
 
 		String[] reservedScreenNames = PrefsPropsUtil.getStringArray(
