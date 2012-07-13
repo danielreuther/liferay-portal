@@ -1638,7 +1638,7 @@ public class ServicePreAction extends Action {
 	}
 
 	protected Locale getLocale(Locale locale, boolean returnLastLocale) {
-		Vector<Locale> locales = new Vector();
+		Vector<Locale> locales = new Vector<Locale>();
 
 		locales.add(locale);
 
