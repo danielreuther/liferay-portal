@@ -26,6 +26,7 @@ import com.liferay.portal.RequiredGroupException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.staging.StagingUtil;
@@ -124,9 +125,12 @@ public class EditGroupAction extends PortletAction {
 			}
 
 			if (Validator.isNotNull(closeRedirect)) {
+				LiferayPortletConfig liferayPortletConfig =
+					(LiferayPortletConfig)portletConfig;
+
 				SessionMessages.add(
 					actionRequest,
-					portletConfig.getPortletName() +
+					liferayPortletConfig.getPortletId() +
 						SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
 					closeRedirect);
 			}
@@ -426,25 +430,25 @@ public class EditGroupAction extends PortletAction {
 		typeSettingsProperties.setProperty("false-robots.txt", publicRobots);
 		typeSettingsProperties.setProperty("true-robots.txt", privateRobots);
 
-		boolean trashEnabled = ParamUtil.getBoolean(
+		int trashEnabled = ParamUtil.getInteger(
 			actionRequest, "trashEnabled",
-			GetterUtil.getBoolean(
+			GetterUtil.getInteger(
 				typeSettingsProperties.getProperty("trashEnabled")));
 
 		typeSettingsProperties.setProperty(
 			"trashEnabled", String.valueOf(trashEnabled));
 
-		int trashEntriesMaxAgeSite = ParamUtil.getInteger(
+		int trashEntriesMaxAgeGroup = ParamUtil.getInteger(
 			actionRequest, "trashEntriesMaxAge",
 			GetterUtil.getInteger(
 				typeSettingsProperties.getProperty("trashEntriesMaxAge")));
 
-		int trashEntriesMaxAgePortal = PrefsPropsUtil.getInteger(
+		int trashEntriesMaxAgeCompany = PrefsPropsUtil.getInteger(
 			themeDisplay.getCompanyId(), PropsKeys.TRASH_ENTRIES_MAX_AGE);
 
-		if (trashEntriesMaxAgeSite != trashEntriesMaxAgePortal) {
+		if (trashEntriesMaxAgeGroup != trashEntriesMaxAgeCompany) {
 			typeSettingsProperties.setProperty(
-				"trashEntriesMaxAge", String.valueOf(trashEntriesMaxAgeSite));
+				"trashEntriesMaxAge", String.valueOf(trashEntriesMaxAgeGroup));
 		}
 		else {
 			typeSettingsProperties.remove("trashEntriesMaxAge");
