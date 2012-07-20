@@ -82,7 +82,7 @@
 				for (int i = 0; i < results.getDocs().length; i++) {
 					Document doc = results.doc(i);
 
-					String snippet = doc.get(locale, Field.CONTENT);
+					String snippet = doc.get(locale, Field.SNIPPET);
 
 					ResultRow row = new ResultRow(new Object[] {queryTerms, doc, snippet}, i, i);
 

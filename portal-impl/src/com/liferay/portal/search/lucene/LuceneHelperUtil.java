@@ -336,8 +336,14 @@ public class LuceneHelperUtil {
 	public static String getSnippet(Query query, String field, String s)
 		throws IOException {
 
-		return getSnippet(
-			query, field, s, 3, 80, "...", StringPool.BLANK, StringPool.BLANK);
+		return getSnippet(query, field, s, StringPool.BLANK, StringPool.BLANK);
+	}
+
+	public static String getSnippet(
+			Query query, String field, String s, String preTag, String postTag)
+		throws IOException {
+
+		return getSnippet(query, field, s, 3, 80, "...", preTag, postTag);
 	}
 
 	public static String getSnippet(
@@ -349,6 +355,12 @@ public class LuceneHelperUtil {
 		return getLuceneHelper().getSnippet(
 			query, field, s, maxNumFragments, fragmentLength, fragmentSuffix,
 			preTag, postTag);
+	}
+
+	public static String getSnippetAndHighlight(Query query, String field, String s)
+		throws IOException {
+
+		return getSnippet(query, field, s, "<span class=\"highlight\">", "</span>");
 	}
 
 	public static Version getVersion() {

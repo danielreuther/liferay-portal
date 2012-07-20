@@ -494,10 +494,10 @@ public class LuceneIndexSearcherImpl implements IndexSearcher {
 		String s = StringUtil.merge(values);
 
 		try {
-			snippet = LuceneHelperUtil.getSnippet(
+			snippet = LuceneHelperUtil.getSnippetAndHighlight(
 				(org.apache.lucene.search.Query)QueryTranslatorUtil.translate(
 					query),
-				field, s);
+				localizedName, s);
 		}
 		catch (ParseException pe) {
 			_log.error("Query " + query, pe);

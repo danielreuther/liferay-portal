@@ -29,9 +29,9 @@ String content = snippet;
 
 if (Validator.isNull(snippet)) {
 	content = StringUtil.shorten(doc.get(locale, Field.CONTENT), 200);
-}
 
-content = StringUtil.highlight(content, queryTerms);
+	content = StringUtil.highlight(content, queryTerms);
+}
 
 long articleGroupId = GetterUtil.getLong(doc.get(Field.GROUP_ID));
 String articleId = doc.get("articleId");
