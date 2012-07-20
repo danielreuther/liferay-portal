@@ -494,7 +494,7 @@ public class LuceneIndexSearcherImpl implements IndexSearcher {
 		String s = StringUtil.merge(values);
 
 		try {
-			snippet = LuceneHelperUtil.getSnippet(
+			snippet = LuceneHelperUtil.getSnippetHighlighted(
 				(org.apache.lucene.search.Query)QueryTranslatorUtil.translate(
 					query),
 				field, s);
