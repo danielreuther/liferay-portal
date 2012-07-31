@@ -362,6 +362,10 @@ public class LuceneHelperImpl implements LuceneHelper {
 	}
 
 	public String[] getQueryTerms(Query query) {
+		return getQueryTerms(query, Field.KEYWORDS);
+	}
+
+	public String[] getQueryTerms(Query query, String[] keywords) {
 		String queryString = StringUtil.replace(
 			query.toString(), StringPool.STAR, StringPool.BLANK);
 
@@ -381,18 +385,10 @@ public class LuceneHelperImpl implements LuceneHelper {
 			tempQuery = query;
 		}
 
-		WeightedTerm[] weightedTerms = null;
-
-		for (String fieldName : Field.KEYWORDS) {
-			weightedTerms = QueryTermExtractor.getTerms(
-				tempQuery, false, fieldName);
-
-			if (weightedTerms.length > 0) {
-				break;
-			}
-		}
-
 		Set<String> queryTerms = new HashSet<String>();
+
+		WeightedTerm[] weightedTerms = QueryTermExtractor.getTerms(
+			tempQuery, false, keywords);
 
 		for (WeightedTerm weightedTerm : weightedTerms) {
 			queryTerms.add(weightedTerm.getTerm());

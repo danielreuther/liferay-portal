@@ -54,6 +54,7 @@ import com.liferay.portal.kernel.search.facet.SimpleFacet;
 import com.liferay.portal.kernel.search.facet.collector.FacetCollector;
 import com.liferay.portal.kernel.search.facet.config.FacetConfiguration;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
@@ -67,6 +68,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.document.NumericField;
 import org.apache.lucene.index.IndexReader;
@@ -458,12 +460,23 @@ public class LuceneIndexSearcherImpl implements IndexSearcher {
 	}
 
 	protected String[] getQueryTerms(Query query) {
+		Set<String> keywords = SetUtil.fromArray(Field.KEYWORDS);
+
+		QueryConfig queryConfig = query.getQueryConfig();
+
+		Locale queryLocale = queryConfig.getLocale();
+
+		keywords.add(DocumentImpl.getLocalizedName(queryLocale, Field.CONTENT));
+		keywords.add(
+			DocumentImpl.getLocalizedName(queryLocale, Field.DESCRIPTION));
+		keywords.add(DocumentImpl.getLocalizedName(queryLocale, Field.TITLE));
+
 		String[] queryTerms = new String[0];
 
 		try {
 			queryTerms = LuceneHelperUtil.getQueryTerms(
 				(org.apache.lucene.search.Query)QueryTranslatorUtil.translate(
-					query));
+					query), keywords.toArray(new String[keywords.size()]));
 		}
 		catch (ParseException pe) {
 			_log.error("Query " + query, pe);

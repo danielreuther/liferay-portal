@@ -14,6 +14,8 @@
 
 package com.liferay.portal.search.lucene.highlight;
 
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
@@ -33,6 +35,18 @@ public class QueryTermExtractor {
 
 	public static WeightedTerm[] getTerms(
 		Query query, boolean prohibited, String fieldName) {
+
+		String[] fieldNames = new String[0];
+
+		if (Validator.isNotNull(fieldName)) {
+			fieldNames = new String[] {fieldName};
+		}
+
+		return getTerms(query, prohibited, fieldNames);
+	}
+
+	public static WeightedTerm[] getTerms(
+		Query query, boolean prohibited, String[] fieldNames) {
 
 		if (query == null) {
 			return _emptyWeightedTermArray;
@@ -84,9 +98,21 @@ public class QueryTermExtractor {
 						lastQuery.extractTerms(terms);
 
 						for (Term term : terms) {
-							if ((fieldName == null) ||
-								fieldName.equals(term.field())) {
+							boolean addWeightedTerm = true;
 
+							if (Validator.isNotNull(fieldNames)) {
+								addWeightedTerm = false;
+
+								for (String fieldName : fieldNames) {
+									if (fieldName.equals(term.field())) {
+										addWeightedTerm = true;
+
+										break;
+									}
+								}
+							}
+
+							if (addWeightedTerm) {
 								WeightedTerm weightedTerm = new WeightedTerm(
 									query.getBoost(), term.text());
 

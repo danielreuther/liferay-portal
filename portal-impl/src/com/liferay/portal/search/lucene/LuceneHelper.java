@@ -83,6 +83,8 @@ public interface LuceneHelper {
 			long companyId, Address bootupAddress)
 		throws SystemException;
 
+	public String[] getQueryTerms(Query query, String[] keywords);
+
 	public String[] getQueryTerms(Query query);
 
 	public IndexSearcher getSearcher(long companyId, boolean readOnly)

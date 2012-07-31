@@ -327,6 +327,10 @@ public class LuceneHelperUtil {
 		return getLuceneHelper().getQueryTerms(query);
 	}
 
+	public static String[] getQueryTerms(Query query, String[] keywords) {
+		return getLuceneHelper().getQueryTerms(query, keywords);
+	}
+
 	public static IndexSearcher getSearcher(long companyId, boolean readOnly)
 		throws IOException {
 
