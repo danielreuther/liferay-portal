@@ -1189,7 +1189,8 @@
 			</license>
 		</licenses>
 		<comments>
-			This was recompiled for compatibility with JDK 5.
+			This was recompiled for compatibility with JDK 5 and includes a
+			public patch from LPS-28980.
 		</comments>
 	</library>
 	<library>

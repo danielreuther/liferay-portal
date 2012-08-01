@@ -192,21 +192,9 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	@Override
+	@SuppressWarnings("unused")
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException {
-
-		super.prepareLocalizedFieldsForImport(defaultImportLocale);
-
-		String defaultImportLanguageId = LocaleUtil.toLanguageId(
-			defaultImportLocale);
-
-		String content = LocalizationUtil.updateLocalization(
-			getContent(), "static-content",
-			LocalizationUtil.getLocalization(
-				getContent(), defaultImportLanguageId),
-			defaultImportLanguageId, defaultImportLanguageId, true, true);
-
-		setContent(content);
 	}
 
 	public void setSmallImageType(String smallImageType) {

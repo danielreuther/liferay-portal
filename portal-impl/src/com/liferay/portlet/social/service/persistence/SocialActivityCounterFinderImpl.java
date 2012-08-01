@@ -81,11 +81,7 @@ public class SocialActivityCounterFinderImpl
 			qPos.add(groupId);
 			qPos.add(PortalUtil.getClassNameId(User.class.getName()));
 
-			if ((names != null) && (names.length > 0)) {
-				for (String name : names) {
-					qPos.add(name);
-				}
-			}
+			setNames(qPos, names);
 
 			qPos.add(SocialCounterPeriodUtil.getPeriodLength());
 			qPos.add(SocialCounterPeriodUtil.getActivityDay());
@@ -278,6 +274,8 @@ public class SocialActivityCounterFinderImpl
 			qPos.add(groupId);
 			qPos.add(PortalUtil.getClassNameId(User.class.getName()));
 
+			setNames(qPos, names);
+
 			return (List<SocialActivityCounter>)QueryUtil.list(
 				q, getDialect(), start, end);
 		}
@@ -314,6 +312,9 @@ public class SocialActivityCounterFinderImpl
 
 			qPos.add(groupId);
 			qPos.add(PortalUtil.getClassNameId(User.class.getName()));
+
+			setNames(qPos, names);
+
 			qPos.add(SocialCounterPeriodUtil.getStartPeriod());
 
 			return (List<Long>)QueryUtil.list(q, getDialect(), start, end);
@@ -342,6 +343,14 @@ public class SocialActivityCounterFinderImpl
 		}
 
 		return sb.toString();
+	}
+
+	protected void setNames(QueryPos qPos, String[] names) {
+		if ((names != null) && (names.length > 0)) {
+			for (String name : names) {
+				qPos.add(name);
+			}
+		}
 	}
 
 	private static PortalCache _activityCounters = MultiVMPoolUtil.getCache(
