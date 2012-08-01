@@ -44,8 +44,10 @@ import com.liferay.portlet.PortletConfigFactoryUtil;
 
 import java.text.MessageFormat;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -441,6 +443,20 @@ public class LanguageImpl implements Language {
 
 	public Locale getLocale(String languageCode) {
 		return _getInstance()._getLocale(languageCode);
+	}
+
+	public Locale[] getSupportedLocales() {
+		List<Locale> supportedLocales = new ArrayList<Locale>();
+
+		Locale[] locales = getAvailableLocales();
+
+		for (Locale locale : locales) {
+			if (!isBetaLocale(locale)) {
+				supportedLocales.add(locale);
+			}
+		}
+
+		return supportedLocales.toArray(new Locale[supportedLocales.size()]);
 	}
 
 	public String getTimeDescription(Locale locale, long milliseconds) {

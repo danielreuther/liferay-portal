@@ -179,7 +179,7 @@ if (!selectableTree) {
 
 						alwaysShowHitArea: node.hasChildren,
 
-						<c:if test='<%= !saveState && defaultStateChecked %>'>
+						<c:if test="<%= !saveState && defaultStateChecked %>">
 							checked: true,
 						</c:if>
 
@@ -445,12 +445,12 @@ if (!selectableTree) {
 
 			alwaysShowHitArea: true,
 
-			<c:if test='<%= !saveState && defaultStateChecked %>'>
+			<c:if test="<%= !saveState && defaultStateChecked %>">
 				checked: true,
 			</c:if>
 
 			<%
-			JSONObject layoutsJSON = JSONFactoryUtil.createJSONObject(LayoutsTreeUtil.getLayoutsJSON(request, groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, StringUtil.split(openNodes, 0L)));
+			JSONObject layoutsJSON = JSONFactoryUtil.createJSONObject(LayoutsTreeUtil.getLayoutsJSON(request, groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, StringUtil.split(openNodes, 0L), true));
 			%>
 
 			children: TreeUtil.formatJSONResults(<%= layoutsJSON %>),

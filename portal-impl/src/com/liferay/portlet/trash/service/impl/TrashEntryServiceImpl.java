@@ -52,8 +52,8 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 	 * permissions.
 	 *
 	 * @param  groupId the primary key of the group
-	 * @throws SystemException if a system exception occurred
 	 * @throws PrincipalException if a principal exception occurred
+	 * @throws SystemException if a system exception occurred
 	 */
 	public void deleteEntries(long groupId)
 		throws PrincipalException, SystemException {
@@ -88,8 +88,8 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 	 *
 	 * @param  groupId the primary key of the group
 	 * @return the matching trash entries
-	 * @throws SystemException if a system exception occurred
 	 * @throws PrincipalException if a principal exception occurred
+	 * @throws SystemException if a system exception occurred
 	 */
 	public TrashEntryList getEntries(long groupId)
 		throws PrincipalException, SystemException {
@@ -108,8 +108,8 @@ public class TrashEntryServiceImpl extends TrashEntryServiceBaseImpl {
 	 *         <code>null</code>)
 	 * @return the range of matching trash entries ordered by comparator
 	 *         <code>obc</code>
-	 * @throws SystemException if a system exception occurred
 	 * @throws PrincipalException if a system exception occurred
+	 * @throws SystemException if a system exception occurred
 	 */
 	public TrashEntryList getEntries(
 			long groupId, int start, int end, OrderByComparator obc)

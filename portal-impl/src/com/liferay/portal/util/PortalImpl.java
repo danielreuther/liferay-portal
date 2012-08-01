@@ -1450,9 +1450,11 @@ public class PortalImpl implements Portal {
 
 				String[] facebookData = FacebookUtil.getFacebookData(request);
 
-				currentURL =
-					FacebookUtil.FACEBOOK_APPS_URL + facebookData[0] +
-						facebookData[2];
+				if (facebookData != null) {
+					currentURL =
+						FacebookUtil.FACEBOOK_APPS_URL + facebookData[0] +
+							facebookData[2];
+				}
 			}
 		}
 
@@ -1487,20 +1489,34 @@ public class PortalImpl implements Portal {
 	}
 
 	public Date getDate(
-			int month, int day, int year, int hour, int min, PortalException pe)
+			int month, int day, int year,
+			Class<? extends PortalException> clazz)
 		throws PortalException {
 
-		return getDate(month, day, year, hour, min, null, pe);
+		return getDate(month, day, year, null, clazz);
+	}
+
+	public Date getDate(
+			int month, int day, int year, int hour, int min,
+			Class<? extends PortalException> clazz)
+		throws PortalException {
+
+		return getDate(month, day, year, hour, min, null, clazz);
 	}
 
 	public Date getDate(
 			int month, int day, int year, int hour, int min, TimeZone timeZone,
-			PortalException pe)
+			Class<? extends PortalException> clazz)
 		throws PortalException {
 
 		if (!Validator.isGregorianDate(month, day, year)) {
-			if (pe != null) {
-				throw pe;
+			if (clazz != null) {
+				try {
+					throw clazz.newInstance();
+				}
+				catch (Exception e) {
+					throw new PortalException(e);
+				}
 			}
 			else {
 				return null;
@@ -1537,17 +1553,12 @@ public class PortalImpl implements Portal {
 		}
 	}
 
-	public Date getDate(int month, int day, int year, PortalException pe)
-		throws PortalException {
-
-		return getDate(month, day, year, null, pe);
-	}
-
 	public Date getDate(
-			int month, int day, int year, TimeZone timeZone, PortalException pe)
+			int month, int day, int year, TimeZone timeZone,
+			Class<? extends PortalException> clazz)
 		throws PortalException {
 
-		return getDate(month, day, year, -1, -1, timeZone, pe);
+		return getDate(month, day, year, -1, -1, timeZone, clazz);
 	}
 
 	public long getDefaultCompanyId() {
@@ -1762,7 +1773,7 @@ public class PortalImpl implements Portal {
 
 			value = getDate(
 				valueDateMonth, valueDateDay, valueDateYear, valueDateHour,
-				valueDateMinute, timeZone, new ValueDataException());
+				valueDateMinute, timeZone, ValueDataException.class);
 		}
 		else if (type == ExpandoColumnConstants.DATE_ARRAY) {
 		}
@@ -1900,7 +1911,7 @@ public class PortalImpl implements Portal {
 
 			value = getDate(
 				valueDateMonth, valueDateDay, valueDateYear, valueDateHour,
-				valueDateMinute, timeZone, new ValueDataException());
+				valueDateMinute, timeZone, ValueDataException.class);
 		}
 		else if (type == ExpandoColumnConstants.DATE_ARRAY) {
 		}
@@ -2702,8 +2713,9 @@ public class PortalImpl implements Portal {
 	public HttpServletRequest getOriginalServletRequest(
 		HttpServletRequest request) {
 
-		List<HttpServletRequestWrapper> persistentHttpServletRequestWrappers =
-			new ArrayList<HttpServletRequestWrapper>();
+		List<PersistentHttpServletRequestWrapper>
+			persistentHttpServletRequestWrappers =
+				new ArrayList<PersistentHttpServletRequestWrapper>();
 
 		HttpServletRequest originalRequest = request;
 
@@ -2713,8 +2725,12 @@ public class PortalImpl implements Portal {
 			if (originalRequest instanceof
 					PersistentHttpServletRequestWrapper) {
 
+				PersistentHttpServletRequestWrapper
+					persistentHttpServletRequestWrapper =
+						(PersistentHttpServletRequestWrapper)originalRequest;
+
 				persistentHttpServletRequestWrappers.add(
-					(HttpServletRequestWrapper)originalRequest);
+					persistentHttpServletRequestWrapper.clone());
 			}
 
 			// Get original request so that portlets inside portlets render
@@ -3690,6 +3706,33 @@ public class PortalImpl implements Portal {
 			getHttpServletRequest(portletRequest), checkPermission);
 	}
 
+	public long[] getSiteAndCompanyGroupIds(long groupId)
+		throws PortalException, SystemException {
+
+		Group scopeGroup = GroupLocalServiceUtil.getGroup(groupId);
+
+		Group companyGroup = GroupLocalServiceUtil.getCompanyGroup(
+			scopeGroup.getCompanyId());
+
+		if (scopeGroup.isLayout()) {
+			return new long[] {
+				scopeGroup.getParentGroupId(), companyGroup.getGroupId()
+			};
+		}
+		else if (scopeGroup.isRegularSite()) {
+			return new long[] {groupId, companyGroup.getGroupId()};
+		}
+		else {
+			return new long[] {companyGroup.getGroupId()};
+		}
+	}
+
+	public long[] getSiteAndCompanyGroupIds(ThemeDisplay themeDisplay)
+		throws PortalException, SystemException {
+
+		return getSiteAndCompanyGroupIds(themeDisplay.getScopeGroupId());
+	}
+
 	public String getSiteLoginURL(ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
@@ -4467,6 +4510,16 @@ public class PortalImpl implements Portal {
 			}
 
 			if (layoutTypePortlet.hasPortletId(checkPortletId)) {
+				return true;
+			}
+
+			String resourcePrimKey = PortletPermissionUtil.getPrimaryKey(
+				themeDisplay.getPlid(), portletId);
+
+			if (ResourcePermissionLocalServiceUtil.getResourcePermissionsCount(
+					themeDisplay.getCompanyId(), portlet.getPortletName(),
+					ResourceConstants.SCOPE_INDIVIDUAL, resourcePrimKey) > 0) {
+
 				return true;
 			}
 		}
