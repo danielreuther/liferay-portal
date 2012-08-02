@@ -355,6 +355,7 @@ public class SourceFormatter {
 		}
 
 		ifClause = _stripQuotes(ifClause);
+		ifClause = _stripRedundantParentheses(ifClause);
 
 		ifClause = StringUtil.replace(
 			ifClause, new String[] {"'('", "')'"},
@@ -1161,18 +1162,7 @@ public class SourceFormatter {
 				}
 			}
 
-			String oldContent = content;
-			String newContent = StringPool.BLANK;
-
-			for (;;) {
-				newContent = _formatJavaContent(fileName, oldContent);
-
-				if (oldContent.equals(newContent)) {
-					break;
-				}
-
-				oldContent = newContent;
-			}
+			String newContent = content;
 
 			if (newContent.contains("$\n */")) {
 				_sourceFormatterHelper.printError(fileName, "*: " + fileName);
@@ -1296,6 +1286,18 @@ public class SourceFormatter {
 					_sourceFormatterHelper.printError(
 						fileName, "Use getInt(1) for count: " + fileName);
 				}
+			}
+
+			String oldContent = newContent;
+
+			for (;;) {
+				newContent = _formatJavaContent(fileName, oldContent);
+
+				if (oldContent.equals(newContent)) {
+					break;
+				}
+
+				oldContent = newContent;
 			}
 
 			if ((newContent != null) && !content.equals(newContent)) {
@@ -2032,11 +2034,22 @@ public class SourceFormatter {
 					if (pos != -1) {
 						String attribute = trimmedLine.substring(0, pos);
 
-						if (Validator.isNotNull(previousAttribute)) {
+						if (!trimmedLine.endsWith(StringPool.QUOTE) &&
+							!trimmedLine.endsWith(StringPool.APOSTROPHE)) {
+
+							_sourceFormatterHelper.printError(
+								fileName,
+								"attribute: " + fileName + " " + lineCount);
+
+							readAttributes = false;
+						}
+						else if (Validator.isNotNull(previousAttribute)) {
 							if (!_isJSPAttributName(attribute)) {
 								_sourceFormatterHelper.printError(
 									fileName,
 									"attribute: " + fileName + " " + lineCount);
+
+								readAttributes = false;
 							}
 							else if (Validator.isNull(
 										previousAttributeAndValue) &&
@@ -2048,7 +2061,13 @@ public class SourceFormatter {
 							}
 						}
 
-						previousAttribute = attribute;
+						if (!readAttributes) {
+							previousAttribute = null;
+							previousAttributeAndValue = null;
+						}
+						else {
+							previousAttribute = attribute;
+						}
 					}
 				}
 				else {
@@ -3536,6 +3555,14 @@ public class SourceFormatter {
 
 			String value = s.substring(0, y);
 
+			if ((delimeter == CharPool.APOSTROPHE) &&
+				!value.contains(StringPool.QUOTE)) {
+
+				return StringUtil.replace(
+					line, StringPool.APOSTROPHE + value + StringPool.APOSTROPHE,
+					StringPool.QUOTE + value + StringPool.QUOTE);
+			}
+
 			if (value.contains("<%") && !value.contains("%>")) {
 				int z = s.indexOf("%>");
 
@@ -3656,6 +3683,28 @@ public class SourceFormatter {
 		content = beforeImports + imports + "\n" + afterImports;
 
 		return content;
+	}
+
+	private static String _stripRedundantParentheses(String s) {
+		for (int x = 0;;) {
+			x = s.indexOf(StringPool.OPEN_PARENTHESIS, x + 1);
+			int y = s.indexOf(StringPool.CLOSE_PARENTHESIS, x);
+
+			if ((x == -1) || (y == -1)) {
+				return s;
+			}
+
+			String linePart = s.substring(x + 1, y);
+
+			linePart = StringUtil.replace(
+				linePart, StringPool.COMMA, StringPool.BLANK);
+
+			if (Validator.isAlphanumericName(linePart) ||
+				Validator.isNull(linePart)) {
+
+				s = s.substring(0, x) + s.substring(y + 1);
+			}
+		}
 	}
 
 	private static String _stripQuotes(String s) {

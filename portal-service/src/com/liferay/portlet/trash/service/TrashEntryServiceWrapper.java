@@ -54,8 +54,8 @@ public class TrashEntryServiceWrapper implements TrashEntryService,
 	* permissions.
 	*
 	* @param groupId the primary key of the group
-	* @throws SystemException if a system exception occurred
 	* @throws PrincipalException if a principal exception occurred
+	* @throws SystemException if a system exception occurred
 	*/
 	public void deleteEntries(long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException,
@@ -68,8 +68,8 @@ public class TrashEntryServiceWrapper implements TrashEntryService,
 	*
 	* @param groupId the primary key of the group
 	* @return the matching trash entries
-	* @throws SystemException if a system exception occurred
 	* @throws PrincipalException if a principal exception occurred
+	* @throws SystemException if a system exception occurred
 	*/
 	public com.liferay.portlet.trash.model.TrashEntryList getEntries(
 		long groupId)
@@ -89,8 +89,8 @@ public class TrashEntryServiceWrapper implements TrashEntryService,
 	<code>null</code>)
 	* @return the range of matching trash entries ordered by comparator
 	<code>obc</code>
-	* @throws SystemException if a system exception occurred
 	* @throws PrincipalException if a system exception occurred
+	* @throws SystemException if a system exception occurred
 	*/
 	public com.liferay.portlet.trash.model.TrashEntryList getEntries(
 		long groupId, int start, int end,
@@ -100,36 +100,6 @@ public class TrashEntryServiceWrapper implements TrashEntryService,
 		return _trashEntryService.getEntries(groupId, start, end, obc);
 	}
 
-	/**
-	* Returns an ordered range of all the trash entries which match the
-	* keywords and the group ID, using the indexer. It is preferable to use
-	* this method instead of the non-indexed version whenever possible for
-	* performance reasons.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end -
-	* start</code> instances. <code>start</code> and <code>end</code> are not
-	* primary keys, they are indexes in the result set. Thus, <code>0</code>
-	* refers to the first result in the set. Setting both <code>start</code>
-	* and <code>end</code> to {@link
-	* com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
-	* result set.
-	* </p>
-	*
-	* @param companyId the primary key of the company
-	* @param groupId the primary key of the group
-	* @param userId the primary key of the user
-	* @param keywords the keywords (space separated), which may occur in the
-	user's first name, middle name, last name, screen name, or email
-	address
-	* @param start the lower bound of the range of users
-	* @param end the upper bound of the range of users (not inclusive)
-	* @param sort the field and direction to sort by (optionally
-	<code>null</code>)
-	* @return the matching users
-	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portlet.usersadmin.util.UserIndexer
-	*/
 	public com.liferay.portal.kernel.search.Hits search(long companyId,
 		long groupId, long userId, java.lang.String keywords, int start,
 		int end, com.liferay.portal.kernel.search.Sort sort)
