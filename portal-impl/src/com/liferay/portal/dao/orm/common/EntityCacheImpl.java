@@ -62,7 +62,13 @@ public class EntityCacheImpl implements CacheRegistryItem, EntityCache {
 	public void clearCache(String className) {
 		clearLocalCache();
 
-		PortalCache portalCache = _getPortalCache(className, false);
+		PortalCache portalCache = null;
+
+		if (PropsValues.CLUSTER_LINK_ENABLED){
+			portalCache = _getPortalCache(className, true);
+		} else {
+			portalCache = _getPortalCache(className, false);
+		}
 
 		if (portalCache != null) {
 			portalCache.removeAll();
