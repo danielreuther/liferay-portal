@@ -63,11 +63,7 @@ public class FinderCacheImpl implements CacheRegistryItem, FinderCache {
 
 		PortalCache portalCache = null;
 
-		if (PropsValues.CLUSTER_LINK_ENABLED){
-			portalCache = _getPortalCache(className, true);
-		} else {
-			portalCache = _getPortalCache(className, false);
-		}
+		portalCache = _getPortalCache(className, true);
 
 		if (portalCache != null) {
 			portalCache.removeAll();
