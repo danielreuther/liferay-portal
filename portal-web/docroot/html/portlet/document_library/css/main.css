@@ -578,5 +578,9 @@
 		.aui-audio-node {
 			height: 28px;
 		}
+
+		div.aui-video-node {
+			height: 100%;
+		}
 	}
 }
