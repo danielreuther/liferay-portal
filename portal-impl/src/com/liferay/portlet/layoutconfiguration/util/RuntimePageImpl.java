@@ -49,6 +49,7 @@ import com.liferay.portlet.layoutconfiguration.util.xml.PortletLogic;
 import com.liferay.portlet.layoutconfiguration.util.xml.RenderURLLogic;
 import com.liferay.portlet.layoutconfiguration.util.xml.RuntimeLogic;
 import com.liferay.taglib.util.VelocityTaglib;
+import com.liferay.taglib.util.VelocityTaglibImpl;
 
 import java.io.Closeable;
 
@@ -313,7 +314,7 @@ public class RuntimePageImpl implements RuntimePage {
 
 		// liferay:include tag library
 
-		VelocityTaglib velocityTaglib = new VelocityTaglib(
+		VelocityTaglib velocityTaglib = new VelocityTaglibImpl(
 			pageContext.getServletContext(), request, response, pageContext,
 			template);
 
@@ -357,7 +358,7 @@ public class RuntimePageImpl implements RuntimePage {
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
-		VelocityTaglib velocityTaglib = new VelocityTaglib(
+		VelocityTaglib velocityTaglib = new VelocityTaglibImpl(
 			pageContext.getServletContext(), request,
 			new PipingServletResponse(response, unsyncStringWriter),
 			pageContext, template);
