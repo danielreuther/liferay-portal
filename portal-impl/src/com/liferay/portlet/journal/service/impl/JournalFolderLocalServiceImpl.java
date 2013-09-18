@@ -82,6 +82,7 @@ public class JournalFolderLocalServiceImpl
 		folder.setCreateDate(serviceContext.getCreateDate(now));
 		folder.setModifiedDate(serviceContext.getModifiedDate(now));
 		folder.setParentFolderId(parentFolderId);
+		folder.setTreePath(folder.buildTreePath());
 		folder.setName(name);
 		folder.setDescription(description);
 		folder.setExpandoBridgeAttributes(serviceContext);
@@ -397,6 +398,7 @@ public class JournalFolderLocalServiceImpl
 
 		folder.setModifiedDate(serviceContext.getModifiedDate(null));
 		folder.setParentFolderId(parentFolderId);
+		folder.setTreePath(folder.buildTreePath());
 		folder.setExpandoBridgeAttributes(serviceContext);
 
 		journalFolderPersistence.update(folder);
@@ -455,6 +457,24 @@ public class JournalFolderLocalServiceImpl
 			extraDataJSONObject.toString(), 0);
 
 		return folder;
+	}
+
+	@Override
+	public void rebuildTree(long companyId)
+		throws PortalException, SystemException {
+
+		List<JournalFolder> folders = journalFolderPersistence.findByC_NotS(
+			companyId, WorkflowConstants.STATUS_IN_TRASH);
+
+		for (JournalFolder folder : folders) {
+			if (folder.isInTrashContainer()) {
+				continue;
+			}
+
+			folder.setTreePath(folder.buildTreePath());
+
+			journalFolderPersistence.update(folder);
+		}
 	}
 
 	@Override
@@ -532,6 +552,7 @@ public class JournalFolderLocalServiceImpl
 
 		folder.setModifiedDate(serviceContext.getModifiedDate(null));
 		folder.setParentFolderId(parentFolderId);
+		folder.setTreePath(folder.buildTreePath());
 		folder.setName(name);
 		folder.setDescription(description);
 		folder.setExpandoBridgeAttributes(serviceContext);
@@ -600,7 +621,8 @@ public class JournalFolderLocalServiceImpl
 
 			trashEntryLocalService.addTrashEntry(
 				userId, folder.getGroupId(), JournalFolder.class.getName(),
-				folder.getFolderId(), oldStatus, null, typeSettingsProperties);
+				folder.getFolderId(), folder.getUuid(), null, oldStatus, null,
+				typeSettingsProperties);
 		}
 
 		// Index
@@ -623,27 +645,26 @@ public class JournalFolderLocalServiceImpl
 		if (folder.getFolderId() == parentFolderId) {
 			return folder.getParentFolderId();
 		}
-		else {
-			JournalFolder parentFolder =
-				journalFolderPersistence.fetchByPrimaryKey(parentFolderId);
 
-			if ((parentFolder == null) ||
-				(folder.getGroupId() != parentFolder.getGroupId())) {
+		JournalFolder parentFolder = journalFolderPersistence.fetchByPrimaryKey(
+			parentFolderId);
 
-				return folder.getParentFolderId();
-			}
+		if ((parentFolder == null) ||
+			(folder.getGroupId() != parentFolder.getGroupId())) {
 
-			List<Long> subfolderIds = new ArrayList<Long>();
-
-			getSubfolderIds(
-				subfolderIds, folder.getGroupId(), folder.getFolderId());
-
-			if (subfolderIds.contains(parentFolderId)) {
-				return folder.getParentFolderId();
-			}
-
-			return parentFolderId;
+			return folder.getParentFolderId();
 		}
+
+		List<Long> subfolderIds = new ArrayList<Long>();
+
+		getSubfolderIds(
+			subfolderIds, folder.getGroupId(), folder.getFolderId());
+
+		if (subfolderIds.contains(parentFolderId)) {
+			return folder.getParentFolderId();
+		}
+
+		return parentFolderId;
 	}
 
 	protected long getParentFolderId(long groupId, long parentFolderId)

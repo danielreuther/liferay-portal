@@ -103,12 +103,24 @@ public class DLFolderTrashHandler extends DLBaseTrashHandler {
 	}
 
 	@Override
-	public String getRestoreLink(PortletRequest portletRequest, long classPK)
+	public String getRestoreContainedModelLink(
+			PortletRequest portletRequest, long classPK)
 		throws PortalException, SystemException {
 
 		DLFolder dlFolder = getDLFolder(classPK);
 
-		return DLUtil.getDLControlPanelLink(
+		return DLUtil.getDLFolderControlPanelLink(
+			portletRequest, dlFolder.getFolderId());
+	}
+
+	@Override
+	public String getRestoreContainerModelLink(
+			PortletRequest portletRequest, long classPK)
+		throws PortalException, SystemException {
+
+		DLFolder dlFolder = getDLFolder(classPK);
+
+		return DLUtil.getDLFolderControlPanelLink(
 			portletRequest, dlFolder.getParentFolderId());
 	}
 
@@ -120,6 +132,11 @@ public class DLFolderTrashHandler extends DLBaseTrashHandler {
 
 		return DLUtil.getAbsolutePath(
 			portletRequest, dlFolder.getParentFolderId());
+	}
+
+	@Override
+	public String getSystemEventClassName() {
+		return Folder.class.getName();
 	}
 
 	@Override

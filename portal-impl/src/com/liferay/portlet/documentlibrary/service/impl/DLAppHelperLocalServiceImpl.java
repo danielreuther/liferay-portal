@@ -548,7 +548,8 @@ public class DLAppHelperLocalServiceImpl
 
 		trashEntryLocalService.addTrashEntry(
 			userId, dlFileShortcut.getGroupId(), DLFileShortcut.class.getName(),
-			dlFileShortcut.getFileShortcutId(), oldStatus, null, null);
+			dlFileShortcut.getFileShortcutId(), dlFileShortcut.getUuid(), null,
+			oldStatus, null, null);
 
 		return dlFileShortcut;
 	}
@@ -1249,7 +1250,7 @@ public class DLAppHelperLocalServiceImpl
 			}
 
 			if ((oldStatus != WorkflowConstants.STATUS_IN_TRASH) &&
-				!latestFileVersion.isInTrashContainer()) {
+				!fileEntry.isInTrashContainer()) {
 
 				// Social
 
@@ -1317,9 +1318,7 @@ public class DLAppHelperLocalServiceImpl
 		dlFileVersions = ListUtil.sort(
 			dlFileVersions, new FileVersionVersionComparator());
 
-		FileVersion fileVersion = new LiferayFileVersion(dlFileVersions.get(0));
-
-		if (fileVersion.isInTrash()) {
+		if (fileEntry.isInTrash()) {
 			restoreFileEntryFromTrash(userId, fileEntry);
 
 			fileEntry = dlAppLocalService.moveFileEntry(
@@ -1333,49 +1332,49 @@ public class DLAppHelperLocalServiceImpl
 
 			return fileEntry;
 		}
-		else {
-			dlFileEntryLocalService.updateStatus(
-				userId, fileVersion.getFileVersionId(), fileVersion.getStatus(),
-				new HashMap<String, Serializable>(), serviceContext);
 
-			if (DLAppHelperThreadLocal.isEnabled()) {
+		FileVersion fileVersion = new LiferayFileVersion(dlFileVersions.get(0));
 
-				// File rank
+		dlFileEntryLocalService.updateStatus(
+			userId, fileVersion.getFileVersionId(), fileVersion.getStatus(),
+			new HashMap<String, Serializable>(), serviceContext);
 
-				dlFileRankLocalService.enableFileRanks(
-					fileEntry.getFileEntryId());
+		if (DLAppHelperThreadLocal.isEnabled()) {
 
-				// File shortcut
+			// File rank
 
-				dlFileShortcutLocalService.enableFileShortcuts(
-					fileEntry.getFileEntryId());
-			}
+			dlFileRankLocalService.enableFileRanks(fileEntry.getFileEntryId());
 
-			// App helper
+			// File shortcut
 
-			fileEntry = dlAppService.moveFileEntry(
-				fileEntry.getFileEntryId(), newFolderId, serviceContext);
-
-			// Sync
-
-			registerDLSyncEventCallback(
-				DLSyncConstants.EVENT_RESTORE, DLSyncConstants.TYPE_FILE,
+			dlFileShortcutLocalService.enableFileShortcuts(
 				fileEntry.getFileEntryId());
-
-			// Social
-
-			JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
-
-			extraDataJSONObject.put("title", fileEntry.getTitle());
-
-			socialActivityLocalService.addActivity(
-				userId, fileEntry.getGroupId(),
-				DLFileEntryConstants.getClassName(), fileEntry.getFileEntryId(),
-				SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
-				extraDataJSONObject.toString(), 0);
-
-			return fileEntry;
 		}
+
+		// App helper
+
+		fileEntry = dlAppService.moveFileEntry(
+			fileEntry.getFileEntryId(), newFolderId, serviceContext);
+
+		// Sync
+
+		registerDLSyncEventCallback(
+			DLSyncConstants.EVENT_RESTORE, DLSyncConstants.TYPE_FILE,
+			fileEntry.getFileEntryId());
+
+		// Social
+
+		JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+		extraDataJSONObject.put("title", fileEntry.getTitle());
+
+		socialActivityLocalService.addActivity(
+			userId, fileEntry.getGroupId(), DLFileEntryConstants.getClassName(),
+			fileEntry.getFileEntryId(),
+			SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
+			extraDataJSONObject.toString(), 0);
+
+		return fileEntry;
 	}
 
 	protected FileEntry doMoveFileEntryToTrash(long userId, FileEntry fileEntry)
@@ -1713,6 +1712,9 @@ public class DLAppHelperLocalServiceImpl
 				DLFileEntryType.class.getName(),
 				dlFileEntryType.getFileEntryTypeId());
 		}
+
+		subscriptionSender.addPersistedSubscribers(
+			DLFileEntry.class.getName(), fileEntry.getFileEntryId());
 
 		subscriptionSender.flushNotificationsAsync();
 	}

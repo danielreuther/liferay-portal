@@ -505,8 +505,10 @@ public class PortalImpl implements Portal {
 		String[] keywordsArray = StringUtil.split(keywords);
 
 		for (String keyword : keywordsArray) {
-			if (!keywordsListMergeable.contains(keyword.toLowerCase())) {
-				keywordsListMergeable.add(keyword.toLowerCase());
+			if (!keywordsListMergeable.contains(
+					StringUtil.toLowerCase(keyword))) {
+
+				keywordsListMergeable.add(StringUtil.toLowerCase(keyword));
 			}
 		}
 	}
@@ -1097,12 +1099,11 @@ public class PortalImpl implements Portal {
 
 				return (BaseModel<?>)method.invoke(null, new Long(primKey));
 			}
-			else {
-				method = serviceUtil.getMethod(
-					methodName, new Class[] {String.class});
 
-				return (BaseModel<?>)method.invoke(null, primKey);
-			}
+			method = serviceUtil.getMethod(
+				methodName, new Class[] {String.class});
+
+			return (BaseModel<?>)method.invoke(null, primKey);
 		}
 		catch (Exception e) {
 			Throwable cause = e.getCause();
@@ -1146,7 +1147,9 @@ public class PortalImpl implements Portal {
 		String authorization = authorizationArray[0];
 		String credentials = new String(Base64.decode(authorizationArray[1]));
 
-		if (!authorization.equalsIgnoreCase(HttpServletRequest.BASIC_AUTH)) {
+		if (!StringUtil.equalsIgnoreCase(
+				authorization, HttpServletRequest.BASIC_AUTH)) {
+
 			return userId;
 		}
 
@@ -2513,7 +2516,7 @@ public class PortalImpl implements Portal {
 		String host = request.getHeader("Host");
 
 		if (host != null) {
-			host = host.trim().toLowerCase();
+			host = StringUtil.toLowerCase(host.trim());
 
 			int pos = host.indexOf(':');
 
@@ -3836,7 +3839,9 @@ public class PortalImpl implements Portal {
 		StringBundler sb = new StringBundler();
 
 		boolean https =
-			secure || Http.HTTPS.equals(PropsValues.WEB_SERVER_PROTOCOL);
+			(secure ||
+			 StringUtil.equalsIgnoreCase(
+				Http.HTTPS, PropsValues.WEB_SERVER_PROTOCOL));
 
 		if (https) {
 			sb.append(Http.HTTPS_WITH_SLASH);
@@ -4536,19 +4541,18 @@ public class PortalImpl implements Portal {
 
 				return companyGroup.getGroupId();
 			}
-			else {
-				String scopeLayoutUuid = GetterUtil.getString(
-					portletSetup.getValue("lfrScopeLayoutUuid", null));
 
-				Layout scopeLayout =
-					LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-						scopeLayoutUuid, layout.getGroupId(),
-						layout.isPrivateLayout());
+			String scopeLayoutUuid = GetterUtil.getString(
+				portletSetup.getValue("lfrScopeLayoutUuid", null));
 
-				Group scopeGroup = scopeLayout.getScopeGroup();
+			Layout scopeLayout =
+				LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+					scopeLayoutUuid, layout.getGroupId(),
+					layout.isPrivateLayout());
 
-				return scopeGroup.getGroupId();
-			}
+			Group scopeGroup = scopeLayout.getScopeGroup();
+
+			return scopeGroup.getGroupId();
 		}
 		catch (Exception e) {
 			return layout.getGroupId();
@@ -5438,15 +5442,14 @@ public class PortalImpl implements Portal {
 		if (Validator.isNotNull(defaultValue)) {
 			return defaultValue;
 		}
-		else {
-			try {
-				User user = UserLocalServiceUtil.getUserById(userId);
 
-				return BeanPropertiesUtil.getString(user, param, defaultValue);
-			}
-			catch (PortalException pe) {
-				return StringPool.BLANK;
-			}
+		try {
+			User user = UserLocalServiceUtil.getUserById(userId);
+
+			return BeanPropertiesUtil.getString(user, param, defaultValue);
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
 		}
 	}
 
@@ -6048,15 +6051,14 @@ public class PortalImpl implements Portal {
 		if (layout.getLayoutId() == layoutId) {
 			return true;
 		}
-		else {
-			for (Layout childLayout : layout.getChildren()) {
-				if (isLayoutDescendant(childLayout, layoutId)) {
-					return true;
-				}
-			}
 
-			return false;
+		for (Layout childLayout : layout.getChildren()) {
+			if (isLayoutDescendant(childLayout, layoutId)) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 
 	@Override
@@ -6116,7 +6118,7 @@ public class PortalImpl implements Portal {
 
 		String method = GetterUtil.getString(request.getMethod());
 
-		if (method.equalsIgnoreCase(HttpMethods.GET)) {
+		if (StringUtil.equalsIgnoreCase(method, HttpMethods.GET)) {
 			return true;
 		}
 		else {
@@ -6130,7 +6132,7 @@ public class PortalImpl implements Portal {
 
 		String method = GetterUtil.getString(request.getMethod());
 
-		if (method.equalsIgnoreCase(HttpMethods.POST)) {
+		if (StringUtil.equalsIgnoreCase(method, HttpMethods.POST)) {
 			return true;
 		}
 		else {
@@ -6226,22 +6228,19 @@ public class PortalImpl implements Portal {
 		if (pos >= 0) {
 			return true;
 		}
-		else {
-			pos = Arrays.binarySearch(
-				_sortedSystemSiteRoles, roleName, new StringComparator());
 
-			if (pos >= 0) {
-				return true;
-			}
-			else {
-				pos = Arrays.binarySearch(
-					_sortedSystemOrganizationRoles, roleName,
-					new StringComparator());
+		pos = Arrays.binarySearch(
+			_sortedSystemSiteRoles, roleName, new StringComparator());
 
-				if (pos >= 0) {
-					return true;
-				}
-			}
+		if (pos >= 0) {
+			return true;
+		}
+
+		pos = Arrays.binarySearch(
+			_sortedSystemOrganizationRoles, roleName, new StringComparator());
+
+		if (pos >= 0) {
+			return true;
 		}
 
 		return false;
@@ -6455,13 +6454,14 @@ public class PortalImpl implements Portal {
 				requestDispatcher.forward(request, response);
 			}
 		}
+		else if (e != null) {
+			response.sendError(status, e.getMessage());
+		}
 		else {
-			if (e != null) {
-				response.sendError(status, e.getMessage());
-			}
-			else {
-				response.sendError(status);
-			}
+			String currentURL = (String)request.getAttribute(
+				WebKeys.CURRENT_URL);
+
+			response.sendError(status, "Current URL " + currentURL);
 		}
 	}
 
@@ -6870,6 +6870,12 @@ public class PortalImpl implements Portal {
 			primaryKey = portletPrimaryKey;
 		}
 		else {
+			Group group = GroupLocalServiceUtil.fetchGroup(groupId);
+
+			if ((group != null) && group.isStagingGroup()) {
+				groupId = group.getLiveGroupId();
+			}
+
 			name = ResourceActionsUtil.getPortletBaseResource(rootPortletId);
 			primaryKey = String.valueOf(groupId);
 		}
@@ -7138,13 +7144,12 @@ public class PortalImpl implements Portal {
 
 			return doAsUserId;
 		}
-		else {
-			_log.error(
-				"User " + realUserIdObj + " does not have the permission " +
-					"to impersonate " + doAsUserId);
 
-			return 0;
-		}
+		_log.error(
+			"User " + realUserIdObj + " does not have the permission to " +
+				"impersonate " + doAsUserId);
+
+		return 0;
 	}
 
 	protected String getGroupFriendlyURL(
@@ -7183,7 +7188,7 @@ public class PortalImpl implements Portal {
 
 			if (Validator.isNotNull(virtualHostname) &&
 				(canonicalURL ||
-				 !virtualHostname.equalsIgnoreCase(_LOCALHOST))) {
+				 !StringUtil.equalsIgnoreCase(virtualHostname, _LOCALHOST))) {
 
 				virtualHostname = getPortalURL(
 					virtualHostname, themeDisplay.getServerPort(),
@@ -7219,14 +7224,16 @@ public class PortalImpl implements Portal {
 						virtualHostname = themeDisplay.getServerName();
 
 						if (Validator.isNull(virtualHostname) ||
-							virtualHostname.equalsIgnoreCase(_LOCALHOST)) {
+							StringUtil.equalsIgnoreCase(
+								virtualHostname, _LOCALHOST)) {
 
 							virtualHostname = curLayoutSet.getVirtualHostname();
 						}
 					}
 
 					if (Validator.isNull(virtualHostname) ||
-						virtualHostname.equalsIgnoreCase(_LOCALHOST)) {
+						StringUtil.equalsIgnoreCase(
+							virtualHostname, _LOCALHOST)) {
 
 						Company company = themeDisplay.getCompany();
 
@@ -7234,7 +7241,8 @@ public class PortalImpl implements Portal {
 					}
 
 					if (canonicalURL ||
-						!virtualHostname.equalsIgnoreCase(_LOCALHOST)) {
+						!StringUtil.equalsIgnoreCase(
+							virtualHostname, _LOCALHOST)) {
 
 						portalURL = getPortalURL(
 							virtualHostname, themeDisplay.getServerPort(),

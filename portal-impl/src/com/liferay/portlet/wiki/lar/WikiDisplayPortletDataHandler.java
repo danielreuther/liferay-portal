@@ -113,22 +113,22 @@ public class WikiDisplayPortletDataHandler extends WikiPortletDataHandler {
 			return StringPool.BLANK;
 		}
 
-		portletDataContext.addPermissions(
-			WikiPermission.RESOURCE_NAME, portletDataContext.getScopeGroupId());
+		portletDataContext.addPortletPermissions(WikiPermission.RESOURCE_NAME);
 
 		Element rootElement = addExportDataRootElement(portletDataContext);
 
 		rootElement.addAttribute(
 			"group-id", String.valueOf(portletDataContext.getScopeGroupId()));
 
-		StagedModelDataHandlerUtil.exportStagedModel(portletDataContext, node);
+		StagedModelDataHandlerUtil.exportReferenceStagedModel(
+			portletDataContext, portletId, node);
 
 		List<WikiPage> pages = WikiPageLocalServiceUtil.getPages(
 			node.getNodeId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		for (WikiPage page : pages) {
-			StagedModelDataHandlerUtil.exportStagedModel(
-				portletDataContext, page);
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, portletId, page);
 		}
 
 		return getExportDataRootElementString(rootElement);
@@ -140,9 +140,8 @@ public class WikiDisplayPortletDataHandler extends WikiPortletDataHandler {
 			PortletPreferences portletPreferences, String data)
 		throws Exception {
 
-		portletDataContext.importPermissions(
-			WikiPermission.RESOURCE_NAME, portletDataContext.getSourceGroupId(),
-			portletDataContext.getScopeGroupId());
+		portletDataContext.importPortletPermissions(
+			WikiPermission.RESOURCE_NAME);
 
 		super.importData(
 			portletDataContext, portletId, portletPreferences, data);

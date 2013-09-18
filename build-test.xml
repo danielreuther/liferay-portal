@@ -457,7 +457,7 @@
 	</target>
 
 	<target name="build-test-ant-scripts">
-		<property name="build-test-ant-scripts.version" value="7" />
+		<property name="build-test-ant-scripts.version" value="0" />
 
 		<if>
 			<available file="portal-web/test-ant-scripts/version" />
@@ -772,20 +772,22 @@
 		<if>
 			<not>
 				<or>
-					<equals arg1="${database}" arg2="db2" />
+					<equals arg1="${database}" arg2="db2-9.7" />
+					<equals arg1="${database}" arg2="db2-10.1" />
 					<equals arg1="${database}" arg2="hsql" />
 					<equals arg1="${database}" arg2="mysql" />
 					<equals arg1="${database}" arg2="oracle-10" />
 					<equals arg1="${database}" arg2="oracle-11" />
 					<equals arg1="${database}" arg2="postgresql-8.4" />
 					<equals arg1="${database}" arg2="postgresql-9.0" />
+					<equals arg1="${database}" arg2="postgresql-9.2" />
 					<equals arg1="${database}" arg2="sql-server-2005" />
 					<equals arg1="${database}" arg2="sql-server-2008" />
 					<equals arg1="${database}" arg2="sybase" />
 				</or>
 			</not>
 			<then>
-				<fail>Please set "database" to one of the following:${line.separator}db2, hsql, mysql, oracle-10, oracle-11, postgresql-8.4, postgresql-9.0, sql-server-2005, sql-server-2008, sybase</fail>
+				<fail>Please set "database" to one of the following:${line.separator}db2-9.7, db2-10.1, hsql, mysql, oracle-10, oracle-11, postgresql-8.4, postgresql-9.0, postgresql-9.2, sql-server-2005, sql-server-2008, sybase</fail>
 			</then>
 		</if>
 	</target>
@@ -957,7 +959,10 @@
 
 	<target name="copy-optional-jars">
 		<if>
-			<equals arg1="${database}" arg2="db2" />
+			<or>
+				<equals arg1="${database}" arg2="db2-9.7" />
+				<equals arg1="${database}" arg2="db2-10.1" />
+			</or>
 			<then>
 				<delete includeemptydirs="true" failonerror="false">
 					<fileset
@@ -967,9 +972,9 @@
 				</delete>
 
 				<copy todir="${todir}">
-						<fileset
-							dir="${jdbc.drivers.optional.dir}/db2/8.1.18"
-							includes="${jdbc.db2.driver}"
+					<fileset
+						dir="${jdbc.drivers.optional.dir}/db2/8.1.18"
+						includes="${jdbc.db2.driver}"
 					/>
 				</copy>
 			</then>
@@ -1970,8 +1975,14 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 		</antcall>
 	</target>
 
-	<target name="prepare-versioned-db2">
-		<echo file="test.${user.name}.properties">database=db2</echo>
+	<target name="prepare-versioned-db2-9.7">
+		<echo file="test.${user.name}.properties">database=db2-9.7</echo>
+
+		<antcall target="prepare-versioned-common" inheritAll="false" />
+	</target>
+
+	<target name="prepare-versioned-db2-10.1">
+		<echo file="test.${user.name}.properties">database=db2-10.1</echo>
 
 		<antcall target="prepare-versioned-common" inheritAll="false" />
 	</target>
@@ -2002,6 +2013,12 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 
 	<target name="prepare-versioned-postgresql-9.0">
 		<echo file="test.${user.name}.properties">database=postgresql-9.0</echo>
+
+		<antcall target="prepare-versioned-common" inheritAll="false" />
+	</target>
+
+	<target name="prepare-versioned-postgresql-9.2">
+		<echo file="test.${user.name}.properties">database=postgresql-9.2</echo>
 
 		<antcall target="prepare-versioned-common" inheritAll="false" />
 	</target>
@@ -2200,6 +2217,18 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 					<elseif>
 						<equals arg1="${database.family}" arg2="mysql" />
 						<then>
+							<var name="mysql.arg.line" unset="true" />
+
+							<if>
+								<equals arg1="${database.password}" arg2="" />
+								<then>
+									<var name="mysql.arg.line" value="-u ${database.username}" />
+								</then>
+								<else>
+									<var name="mysql.arg.line" value="-p ${database.password} -u ${database.username}" />
+								</else>
+							</if>
+
 							<exec executable="${mysql.executable}" input="create.sql">
 								<arg line="${mysql.arg.line}" />
 							</exec>
@@ -2299,6 +2328,20 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 		<exec executable="${shell.executable}">
 			<arg line="${scm.revert.command.formatted}" />
 		</exec>
+	</target>
+
+	<target name="run-selenium-smoke-test">
+		<antcall target="compile" />
+
+		<antcall target="start-selenium" />
+
+		<ant dir="portal-impl" target="compile-test" inheritAll="false" />
+
+		<ant dir="portal-web" target="test-class" inheritAll="false">
+			<property name="class" value="SeleniumSmokeTestSuite" />
+		</ant>
+
+		<antcall target="stop-selenium" />
 	</target>
 
 	<target name="run-selenium-test">
@@ -2402,6 +2445,13 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 			</then>
 		</if>
 
+		<ant antfile="build-test-plugins.xml" target="deploy-simple-server-plugins">
+			<property name="plugin.types" value="portlets" />
+			<property name="plugins.includes" value="marketplace-portlet" />
+		</ant>
+
+		<property name="plugins.deployed" value="true" />
+
 		<if>
 			<isset property="hook.plugins.includes" />
 			<then>
@@ -2410,8 +2460,6 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 					<property name="plugins.deployed" value="${plugins.deployed}" />
 					<property name="plugins.includes" value="${hook.plugins.includes}" />
 				</ant>
-
-				<property name="plugins.deployed" value="true" />
 			</then>
 		</if>
 
@@ -2423,8 +2471,6 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 					<property name="plugins.deployed" value="${plugins.deployed}" />
 					<property name="plugins.includes" value="${layouttpl.plugins.includes}" />
 				</ant>
-
-				<property name="plugins.deployed" value="true" />
 			</then>
 		</if>
 
@@ -2445,8 +2491,6 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 					<property name="plugins.deployed" value="${plugins.deployed}" />
 					<property name="plugins.includes" value="${portlet.plugins.includes}" />
 				</ant>
-
-				<property name="plugins.deployed" value="true" />
 			</then>
 		</if>
 
@@ -2458,8 +2502,6 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 					<property name="plugins.deployed" value="${plugins.deployed}" />
 					<property name="plugins.includes" value="chat-portlet,flash-portlet,portal-compat-hook,sample-service-builder-portlet,test-pacl-portlet" />
 				</ant>
-
-				<property name="plugins.deployed" value="true" />
 			</then>
 		</if>
 
@@ -2471,8 +2513,6 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 					<property name="plugins.deployed" value="${plugins.deployed}" />
 					<property name="plugins.includes" value="${theme.plugins.includes}" />
 				</ant>
-
-				<property name="plugins.deployed" value="true" />
 			</then>
 		</if>
 
@@ -2484,8 +2524,6 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 					<property name="plugins.deployed" value="${plugins.deployed}" />
 					<property name="plugins.includes" value="${web.plugins.includes}" />
 				</ant>
-
-				<property name="plugins.deployed" value="true" />
 			</then>
 		</if>
 
@@ -2527,6 +2565,13 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 			<exec dir="${simple.server.bin.dir}" executable="${simple.server.start.executable}" resolveexecutable="true">
 				<arg line="${simple.server.start.executable.arg.line}" />
 			</exec>
+
+			<if>
+				<equals arg1="${simple.server.type}" arg2="jboss" />
+				<then>
+					<echo file="${simple.server.deploy.dir}/ROOT.war.dodeploy"></echo>
+				</then>
+			</if>
 
 			<sequential>
 				<waitfor>

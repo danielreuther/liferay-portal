@@ -167,6 +167,7 @@ if (selGroup.isStaged() && selGroup.isStagedRemotely()) {
 portletURL.setParameter("struts_action", "/layouts_admin/publish_layouts");
 portletURL.setParameter("closeRedirect", closeRedirect);
 portletURL.setParameter("groupId", String.valueOf(liveGroupId));
+portletURL.setParameter("stagingGroupId", String.valueOf(stagingGroupId));
 portletURL.setParameter("privateLayout", String.valueOf(privateLayout));
 
 PortletURL renderURL = renderResponse.createRenderURL();
@@ -460,7 +461,7 @@ response.setHeader("Ajax-ID", request.getHeader("Ajax-ID"));
 			namespace: '<portlet:namespace />',
 			pageTreeId: '<%= treeId %>',
 			processesNode: '#publishProcesses',
-			processesResourceURL: '<%= HtmlUtil.escapeJS(publishProcessesURL.toString()) %>',
+			processesResourceURL: '<%= publishProcessesURL.toString() %>',
 			rangeAllNode: '#rangeAll',
 			rangeDateRangeNode: '#rangeDateRange',
 			rangeLastNode: '#rangeLast',

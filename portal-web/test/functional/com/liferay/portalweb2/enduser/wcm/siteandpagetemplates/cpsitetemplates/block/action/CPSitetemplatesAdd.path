@@ -34,7 +34,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>ALLOW_SITE_ADMIN_MODIFY_CHECKBOX</td>
+	<td>ALLOW_SITE_ADMINISTRATOR_MODIFY_PAGES_CHECKBOX</td>
 	<td>//input[@id='_149_layoutsUpdateableCheckbox']</td>
 	<td></td>
 </tr>

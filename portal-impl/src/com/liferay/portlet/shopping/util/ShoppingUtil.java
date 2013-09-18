@@ -681,18 +681,17 @@ public class ShoppingUtil {
 
 			return cart;
 		}
-		else {
-			ShoppingCart cart = (ShoppingCart)portletSession.getAttribute(
-				sessionCartId);
 
-			if (cart == null) {
-				cart = getCart(themeDisplay);
+		ShoppingCart cart = (ShoppingCart)portletSession.getAttribute(
+			sessionCartId);
 
-				portletSession.setAttribute(sessionCartId, cart);
-			}
+		if (cart == null) {
+			cart = getCart(themeDisplay);
 
-			return cart;
+			portletSession.setAttribute(sessionCartId, cart);
 		}
+
+		return cart;
 	}
 
 	public static ShoppingCart getCart(ThemeDisplay themeDisplay) {
@@ -718,10 +717,9 @@ public class ShoppingUtil {
 		for (String fields : fieldsArray) {
 			int pos = fields.indexOf("=");
 
-			String fieldValue = fields.substring(
-				pos + 1, fields.length()).trim();
+			String fieldValue = fields.substring(pos + 1, fields.length());
 
-			fieldsValues.add(fieldValue);
+			fieldsValues.add(fieldValue.trim());
 		}
 
 		List<String> names = new ArrayList<String>();
@@ -919,7 +917,7 @@ public class ShoppingUtil {
 			ppPaymentStatus = "checkout";
 		}
 		else {
-			ppPaymentStatus = ppPaymentStatus.toLowerCase();
+			ppPaymentStatus = StringUtil.toLowerCase(ppPaymentStatus);
 		}
 
 		return LanguageUtil.get(pageContext, ppPaymentStatus);

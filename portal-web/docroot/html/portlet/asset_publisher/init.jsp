@@ -83,8 +83,6 @@ long[] classNameIds = AssetPublisherUtil.getClassNameIds(portletPreferences, ava
 
 long[] classTypeIds = GetterUtil.getLongValues(portletPreferences.getValues("classTypeIds", null));
 
-String customUserAttributes = GetterUtil.getString(portletPreferences.getValue("customUserAttributes", StringPool.BLANK));
-
 AssetEntryQuery assetEntryQuery = new AssetEntryQuery();
 
 long[] allAssetCategoryIds = new long[0];
@@ -138,7 +136,7 @@ if (selectionStyle.equals("dynamic")) {
 		}
 	}
 
-	AssetPublisherUtil.addUserAttributes(user, StringUtil.split(customUserAttributes), assetEntryQuery);
+	AssetPublisherUtil.processAssetEntryQuery(user, portletPreferences, assetEntryQuery);
 }
 
 long assetVocabularyId = GetterUtil.getLong(portletPreferences.getValue("assetVocabularyId", StringPool.BLANK));
@@ -241,7 +239,7 @@ if (defaultAssetPublisherPortletId.equals(portletDisplay.getId()) || (Validator.
 	defaultAssetPublisher = true;
 }
 
-boolean enablePermissions = PropsValues.ASSET_PUBLISHER_SEARCH_WITH_INDEX ? true : GetterUtil.getBoolean(portletPreferences.getValue("enablePermissions", null));
+boolean enablePermissions = (!portletName.equals(PortletKeys.HIGHEST_RATED_ASSETS) && !portletName.equals(PortletKeys.MOST_VIEWED_ASSETS) && PropsValues.ASSET_PUBLISHER_SEARCH_WITH_INDEX) ? true : GetterUtil.getBoolean(portletPreferences.getValue("enablePermissions", null));
 
 assetEntryQuery.setEnablePermissions(enablePermissions);
 

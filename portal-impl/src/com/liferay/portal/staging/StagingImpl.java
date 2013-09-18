@@ -2040,7 +2040,7 @@ public class StagingImpl implements Staging {
 
 		PortalPreferences portalPreferences =
 			PortletPreferencesFactoryUtil.getPortalPreferences(
-				user.getCompanyId(), user.getUserId(), signedIn);
+				user.getUserId(), signedIn);
 
 		return portalPreferences;
 	}
@@ -2662,7 +2662,7 @@ public class StagingImpl implements Staging {
 		}
 		catch (SystemException se) {
 			RemoteExportException ree = new RemoteExportException(
-				RemoteExportException.BAD_CONNECTION);
+				RemoteExportException.BAD_CONNECTION, se.getMessage());
 
 			ree.setURL(remoteURL);
 

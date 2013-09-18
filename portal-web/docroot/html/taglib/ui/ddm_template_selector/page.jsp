@@ -79,7 +79,7 @@ Group ddmTemplateGroup = GroupLocalServiceUtil.getGroup(ddmTemplateGroupId);
 			data.put("displaystylegroupid", themeDisplay.getCompanyGroupId());
 
 			for (DDMTemplate companyPortletDDMTemplate : companyPortletDDMTemplates) {
-				if (!DDMTemplatePermission.contains(permissionChecker, companyPortletDDMTemplate, ActionKeys.VIEW)) {
+				if (!DDMTemplatePermission.contains(permissionChecker, companyPortletDDMTemplate, PortletKeys.PORTLET_DISPLAY_TEMPLATES, ActionKeys.VIEW)) {
 					continue;
 				}
 			%>
@@ -108,7 +108,7 @@ Group ddmTemplateGroup = GroupLocalServiceUtil.getGroup(ddmTemplateGroupId);
 
 		<%
 		for (DDMTemplate groupPortletDDMTemplate : groupPortletDDMTemplates) {
-			if (!DDMTemplatePermission.contains(permissionChecker, groupPortletDDMTemplate, ActionKeys.VIEW)) {
+			if (!DDMTemplatePermission.contains(permissionChecker, groupPortletDDMTemplate, PortletKeys.PORTLET_DISPLAY_TEMPLATES, ActionKeys.VIEW)) {
 				continue;
 			}
 		%>
@@ -149,7 +149,7 @@ Group ddmTemplateGroup = GroupLocalServiceUtil.getGroup(ddmTemplateGroupId);
 						basePortletURL: '<%= basePortletURL %>',
 						classNameId: '<%= classNameId %>',
 						dialog: {
-							width: 820
+							width: 1024
 						},
 						groupId: <%= ddmTemplateGroupId %>,
 						refererPortletName: '<%= PortletKeys.PORTLET_DISPLAY_TEMPLATES %>',

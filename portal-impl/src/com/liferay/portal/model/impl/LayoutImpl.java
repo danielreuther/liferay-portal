@@ -524,12 +524,11 @@ public class LayoutImpl extends LayoutBaseImpl {
 			if (parentLayoutId == layoutId) {
 				return true;
 			}
-			else {
-				Layout parentLayout = LayoutLocalServiceUtil.getLayout(
-					getGroupId(), isPrivateLayout(), parentLayoutId);
 
-				parentLayoutId = parentLayout.getParentLayoutId();
-			}
+			Layout parentLayout = LayoutLocalServiceUtil.getLayout(
+				getGroupId(), isPrivateLayout(), parentLayoutId);
+
+			parentLayoutId = parentLayout.getParentLayoutId();
 		}
 
 		return false;
@@ -788,7 +787,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 	}
 
 	private static String _getFriendlyURLKeyword(String friendlyURL) {
-		friendlyURL = friendlyURL.toLowerCase();
+		friendlyURL = StringUtil.toLowerCase(friendlyURL);
 
 		for (String keyword : _friendlyURLKeywords) {
 			if (friendlyURL.startsWith(keyword)) {
@@ -823,7 +822,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 				}
 			}
 
-			_friendlyURLKeywords[i] = keyword.toLowerCase();
+			_friendlyURLKeywords[i] = StringUtil.toLowerCase(keyword);
 		}
 	}
 

@@ -104,12 +104,24 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 	}
 
 	@Override
-	public String getRestoreLink(PortletRequest portletRequest, long classPK)
+	public String getRestoreContainedModelLink(
+			PortletRequest portletRequest, long classPK)
 		throws PortalException, SystemException {
 
 		DLFileEntry dlFileEntry = getDLFileEntry(classPK);
 
-		return DLUtil.getDLControlPanelLink(
+		return DLUtil.getDLFileEntryControlPanelLink(
+			portletRequest, dlFileEntry.getFileEntryId());
+	}
+
+	@Override
+	public String getRestoreContainerModelLink(
+			PortletRequest portletRequest, long classPK)
+		throws PortalException, SystemException {
+
+		DLFileEntry dlFileEntry = getDLFileEntry(classPK);
+
+		return DLUtil.getDLFolderControlPanelLink(
 			portletRequest, dlFileEntry.getFolderId());
 	}
 
@@ -122,6 +134,11 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 		DLFolder dlFolder = dlFileEntry.getFolder();
 
 		return DLUtil.getAbsolutePath(portletRequest, dlFolder.getFolderId());
+	}
+
+	@Override
+	public String getSystemEventClassName() {
+		return FileEntry.class.getName();
 	}
 
 	@Override
@@ -160,9 +177,7 @@ public class DLFileEntryTrashHandler extends DLBaseTrashHandler {
 		try {
 			DLFileEntry dlFileEntry = getDLFileEntry(classPK);
 
-			DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
-
-			return dlFileVersion.isInTrash();
+			return dlFileEntry.isInTrash();
 		}
 		catch (InvalidRepositoryException ire) {
 			return false;

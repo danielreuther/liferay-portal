@@ -702,6 +702,13 @@ public class HttpImpl implements Http {
 	}
 
 	@Override
+	public boolean isSecure(String url) {
+		String protocol = getProtocol(url);
+
+		return StringUtil.equalsIgnoreCase(protocol, Http.HTTPS);
+	}
+
+	@Override
 	public Map<String, String[]> parameterMapFromString(String queryString) {
 		Map<String, String[]> parameterMap =
 			new LinkedHashMap<String, String[]>();
@@ -1069,7 +1076,7 @@ public class HttpImpl implements Http {
 			return null;
 		}
 
-		String protocol = url.getProtocol().toLowerCase();
+		String protocol = StringUtil.toLowerCase(url.getProtocol());
 
 		if (protocol.startsWith(Http.HTTP) || protocol.startsWith(Http.HTTPS)) {
 			return URLtoString(url.toString());

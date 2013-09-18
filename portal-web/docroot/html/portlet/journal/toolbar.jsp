@@ -21,7 +21,7 @@ String strutsAction = ParamUtil.getString(request, "struts_action");
 %>
 
 <aui:nav-bar>
-	<aui:nav>
+	<aui:nav id="toolbarContainer">
 		<aui:nav-item cssClass="hide" dropdown="<%= true %>" id="actionsButtonContainer" label="actions">
 
 			<%
@@ -121,8 +121,8 @@ String strutsAction = ParamUtil.getString(request, "struts_action");
 				},
 				refererPortletName: '<%= PortletKeys.JOURNAL %>',
 				refererWebDAVToken: '<%= portlet.getWebDAVStorageToken() %>',
-				showGlobalScope: 'false',
-				showManageTemplates: 'true',
+				showGlobalScope: false,
+				showManageTemplates: true,
 				title: '<%= UnicodeLanguageUtil.get(pageContext, "structures") %>'
 			}
 		);

@@ -509,6 +509,7 @@ public class ServicePreAction extends Action {
 		LayoutSet layoutSet = null;
 
 		boolean hasCustomizeLayoutPermission = false;
+		boolean hasDeleteLayoutPermission = false;
 		boolean hasUpdateLayoutPermission = false;
 
 		boolean customizedView = SessionParamUtil.getBoolean(
@@ -518,6 +519,8 @@ public class ServicePreAction extends Action {
 			if (!layout.isTypeControlPanel()) {
 				hasCustomizeLayoutPermission = LayoutPermissionUtil.contains(
 					permissionChecker, layout, ActionKeys.CUSTOMIZE);
+				hasDeleteLayoutPermission = LayoutPermissionUtil.contains(
+					permissionChecker, layout, ActionKeys.DELETE);
 				hasUpdateLayoutPermission = LayoutPermissionUtil.contains(
 					permissionChecker, layout, ActionKeys.UPDATE);
 			}
@@ -589,7 +592,7 @@ public class ServicePreAction extends Action {
 
 				PortalPreferences portalPreferences =
 					PortletPreferencesFactoryUtil.getPortalPreferences(
-						companyId, user.getUserId(), true);
+						user.getUserId(), true);
 
 				layoutTypePortlet.setPortalPreferences(portalPreferences);
 			}
@@ -820,7 +823,7 @@ public class ServicePreAction extends Action {
 
 		themeDisplay.setShowHomeIcon(true);
 		themeDisplay.setShowMyAccountIcon(signedIn);
-		themeDisplay.setShowPageSettingsIcon(false);
+		themeDisplay.setShowPageSettingsIcon(hasDeleteLayoutPermission);
 		themeDisplay.setShowPortalIcon(true);
 		themeDisplay.setShowSignInIcon(!signedIn);
 
@@ -1259,14 +1262,23 @@ public class ServicePreAction extends Action {
 
 		themeDisplay.setURLPortal(portalURL.concat(contextPath));
 
-		String urlSignIn = mainPath.concat(_PATH_PORTAL_LOGIN);
+		boolean secure = false;
+
+		if (PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS ||
+			request.isSecure()) {
+
+			secure = true;
+		}
+
+		String securePortalURL = PortalUtil.getPortalURL(request, secure);
+
+		String urlSignIn = securePortalURL.concat(mainPath).concat(
+			_PATH_PORTAL_LOGIN);
 
 		if (layout != null) {
 			urlSignIn = HttpUtil.addParameter(
 				urlSignIn, "p_l_id", layout.getPlid());
 		}
-
-		urlSignIn = HttpUtil.addParameter(urlSignIn, "redirect", currentURL);
 
 		themeDisplay.setURLSignIn(urlSignIn);
 

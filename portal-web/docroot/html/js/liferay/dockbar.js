@@ -23,11 +23,11 @@ AUI.add(
 
 		var STR_PREVIEW_PANEL = 'previewPanel';
 
-		var TPL_ADD_CONTENT = '<div class="lfr-add-panel" id="{0}" />';
+		var TPL_ADD_CONTENT = '<div class="lfr-add-panel lfr-admin-panel" id="{0}" />';
 
-		var TPL_EDIT_LAYOUT_PANEL = '<div class="lfr-edit-layout-panel id="{0}" />';
+		var TPL_EDIT_LAYOUT_PANEL = '<div class="lfr-admin-panel lfr-edit-layout-panel" id="{0}" />';
 
-		var TPL_PREVIEW_PANEL = '<div class="lfr-device-preview-panel id="{0}" />';
+		var TPL_PREVIEW_PANEL = '<div class="lfr-admin-panel lfr-device-preview-panel" id="{0}" />';
 
 		var TPL_LOADING = '<div class="loading-animation" />';
 
@@ -205,6 +205,20 @@ AUI.add(
 				Liferay.fire('initNavigation');
 
 				instance._registerPanels();
+
+				var btnNavigation = A.oneNS(namespace, '#navSiteNavigationNavbarBtn');
+
+				var navigation = A.one(Liferay.Data.NAV_SELECTOR);
+
+				if (btnNavigation && navigation) {
+					btnNavigation.on(
+						EVENT_CLICK,
+						function(event) {
+							btnNavigation.toggleClass('open');
+							navigation.toggleClass('open');
+						}
+					);
+				}
 
 				Liferay.fire('dockbarLoaded');
 			},

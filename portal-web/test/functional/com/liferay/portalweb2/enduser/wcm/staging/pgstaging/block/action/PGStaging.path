@@ -35,7 +35,7 @@
 </tr>
 <tr>
 	<td>STAGING_DROP_DOWN_BUTTON</td>
-	<td>//li[@class=' dropdown']/a[contains(.,'Staging')]</td>
+	<td>//a[@class='staging-link dropdown-toggle']/span[contains(.,'Staging')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -46,6 +46,16 @@
 <tr>
 	<td>PAGE_VARIATION</td>
 	<td>//ul[@class='nav nav-tabs variations-tabview-list']/li/span[contains(.,'${key_pageVariationName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_PAGES_VARIATION</td>
+	<td>//ul[@class='nav nav-tabs site-variations-nav-tabs']/li/a[contains(.,'${key_sitePagesVariationName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MANAGE_SITE_PAGES_VARIATIONS</td>
+	<td>//a[@id='_170_manageLayoutSetBranches']</td>
 	<td></td>
 </tr>
 <tr>
@@ -82,7 +92,7 @@
 </tr>
 <tr>
 	<td>STAGING_MENU_STATUS</td>
-	<td>//span[@class='workflow-status']/strong</td>
+	<td>//span[contains(@class,'workflow-status')]/strong</td>
 	<td></td>
 </tr>
 <tr>
@@ -93,6 +103,11 @@
 <tr>
 	<td>STAGING_MENU_MARK_AS_READY_FOR_PUBLICATION_BUTTON</td>
 	<td>//button[contains(.,'Mark as Ready for Publication')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>STAGING_MENU_SUBMIT_FOR_PUBLICATION_BUTTON</td>
+	<td>//button[contains(.,'Submit for Publication')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -108,7 +123,7 @@
 <!--STAGING_MENULIST-->
 <tr>
 	<td>STAGING_MENULIST_PUBLISH_TO_LIVE_NOW</td>
-	<td>//a[@id='_170_0publishLink']</td>
+	<td>//a[contains(@id,'publishLink')]</td>
 	<td></td>
 </tr>
 <tr>

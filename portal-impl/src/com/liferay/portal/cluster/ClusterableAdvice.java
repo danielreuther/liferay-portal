@@ -99,11 +99,9 @@ public class ClusterableAdvice
 
 		IdentifiableBean identifiableBean = (IdentifiableBean)thisObject;
 
-		String beanIdentifier = identifiableBean.getBeanIdentifier();
+		Class<?> identifiableBeanClass = identifiableBean.getClass();
 
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		ClassLoader contextClassLoader = identifiableBeanClass.getClassLoader();
 
 		String servletContextName = ClassLoaderPool.getContextName(
 			contextClassLoader);
@@ -112,8 +110,9 @@ public class ClusterableAdvice
 			ClusterableContextThreadLocal.collectThreadLocalContext();
 
 		return new MethodHandler(
-			_invokeMethodKey, methodHandler, beanIdentifier, servletContextName,
-			clusterInvokeAcceptorClass, context);
+			_invokeMethodKey, methodHandler, servletContextName,
+			identifiableBean.getBeanIdentifier(), clusterInvokeAcceptorClass,
+			context);
 	}
 
 	@SuppressWarnings("unused")
@@ -144,11 +143,10 @@ public class ClusterableAdvice
 			if (Validator.isNull(beanIdentifier)) {
 				return methodHandler.invoke(true);
 			}
-			else {
-				Object bean = PortalBeanLocatorUtil.locate(beanIdentifier);
 
-				return methodHandler.invoke(bean);
-			}
+			Object bean = PortalBeanLocatorUtil.locate(beanIdentifier);
+
+			return methodHandler.invoke(bean);
 		}
 
 		ClassLoader contextClassLoader =
@@ -163,12 +161,11 @@ public class ClusterableAdvice
 			if (Validator.isNull(beanIdentifier)) {
 				return methodHandler.invoke(true);
 			}
-			else {
-				Object bean = PortletBeanLocatorUtil.locate(
-					servletContextName, beanIdentifier);
 
-				return methodHandler.invoke(bean);
-			}
+			Object bean = PortletBeanLocatorUtil.locate(
+				servletContextName, beanIdentifier);
+
+			return methodHandler.invoke(bean);
 		}
 		finally {
 			ClassLoaderUtil.setContextClassLoader(contextClassLoader);

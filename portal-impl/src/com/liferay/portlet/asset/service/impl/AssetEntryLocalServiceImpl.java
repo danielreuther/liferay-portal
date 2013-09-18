@@ -36,15 +36,14 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
-import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 import com.liferay.portlet.asset.NoSuchEntryException;
-import com.liferay.portlet.asset.NoSuchTagException;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetLink;
 import com.liferay.portlet.asset.model.AssetLinkConstants;
@@ -657,31 +656,10 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		if (tagNames != null) {
 			long siteGroupId = PortalUtil.getSiteGroupId(groupId);
 
-			List<AssetTag> tags = new ArrayList<AssetTag>(tagNames.length);
+			Group siteGroup = groupLocalService.getGroup(siteGroupId);
 
-			for (String tagName : tagNames) {
-				AssetTag tag = null;
-
-				try {
-					tag = assetTagLocalService.getTag(siteGroupId, tagName);
-				}
-				catch (NoSuchTagException nste) {
-					ServiceContext serviceContext = new ServiceContext();
-
-					serviceContext.setAddGroupPermissions(true);
-					serviceContext.setAddGuestPermissions(true);
-					serviceContext.setScopeGroupId(siteGroupId);
-
-					tag = assetTagLocalService.addTag(
-						user.getUserId(), tagName,
-						PropsValues.ASSET_TAG_PROPERTIES_DEFAULT,
-						serviceContext);
-				}
-
-				if (tag != null) {
-					tags.add(tag);
-				}
-			}
+			List<AssetTag> tags = assetTagLocalService.checkTags(
+				userId, siteGroup, tagNames);
 
 			List<AssetTag> oldTags = assetEntryPersistence.getAssetTags(
 				entry.getEntryId());
@@ -943,21 +921,20 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		if (Validator.isNotNull(className)) {
 			return new String[] {className};
 		}
-		else {
-			List<AssetRendererFactory> rendererFactories =
-				AssetRendererFactoryRegistryUtil.getAssetRendererFactories(
-					companyId);
 
-			String[] classNames = new String[rendererFactories.size()];
+		List<AssetRendererFactory> rendererFactories =
+			AssetRendererFactoryRegistryUtil.getAssetRendererFactories(
+				companyId);
 
-			for (int i = 0; i < rendererFactories.size(); i++) {
-				AssetRendererFactory rendererFactory = rendererFactories.get(i);
+		String[] classNames = new String[rendererFactories.size()];
 
-				classNames[i] = rendererFactory.getClassName();
-			}
+		for (int i = 0; i < rendererFactories.size(); i++) {
+			AssetRendererFactory rendererFactory = rendererFactories.get(i);
 
-			return classNames;
+			classNames[i] = rendererFactory.getClassName();
 		}
+
+		return classNames;
 	}
 
 	protected AssetEntry getEntry(Document document)

@@ -32,6 +32,7 @@ import com.liferay.portal.util.PropsValues;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -199,7 +200,18 @@ public class HttpClientSPIAgent implements SPIAgent {
 			Exception exception)
 		throws IOException {
 
+		SPIAgentRequest spiAgentRequest = (SPIAgentRequest)request.getAttribute(
+			WebKeys.SPI_AGENT_REQUEST);
+
 		request.removeAttribute(WebKeys.SPI_AGENT_REQUEST);
+
+		File requestBodyFile = spiAgentRequest.requestBodyFile;
+
+		if (requestBodyFile != null) {
+			if (!requestBodyFile.delete()) {
+				requestBodyFile.deleteOnExit();
+			}
+		}
 
 		SPIAgentResponse spiAgentResponse =
 			(SPIAgentResponse)request.getAttribute(WebKeys.SPI_AGENT_RESPONSE);
@@ -277,12 +289,12 @@ public class HttpClientSPIAgent implements SPIAgent {
 
 			String headerName = headerKeyValuePair[0].trim();
 
-			headerName = headerName.toLowerCase();
+			headerName = StringUtil.toLowerCase(headerName);
 
 			if (headerName.equals("connection")) {
 				String headerValue = headerKeyValuePair[1].trim();
 
-				headerValue = headerValue.toLowerCase();
+				headerValue = StringUtil.toLowerCase(headerValue);
 
 				if (headerValue.equals("close")) {
 					forceCloseSocket = true;

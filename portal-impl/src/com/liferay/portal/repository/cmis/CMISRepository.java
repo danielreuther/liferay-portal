@@ -756,12 +756,10 @@ public class CMISRepository extends BaseCmisRepository {
 
 			return folders.size() + documentIds.size();
 		}
-		else {
-			List<Object> foldersAndFileEntries = getFoldersAndFileEntries(
-				folderId);
 
-			return foldersAndFileEntries.size();
-		}
+		List<Object> foldersAndFileEntries = getFoldersAndFileEntries(folderId);
+
+		return foldersAndFileEntries.size();
 	}
 
 	@Override
@@ -1459,8 +1457,10 @@ public class CMISRepository extends BaseCmisRepository {
 				properties.put(PropertyIds.NAME, title);
 			}
 
-			String newObjectId = cmisFolder.updateProperties(
-				properties, true).getId();
+			ObjectId cmisFolderObjectId = cmisFolder.updateProperties(
+				properties, true);
+
+			String newObjectId = cmisFolderObjectId.getId();
 
 			if (!objectId.equals(newObjectId)) {
 				cmisFolder =
