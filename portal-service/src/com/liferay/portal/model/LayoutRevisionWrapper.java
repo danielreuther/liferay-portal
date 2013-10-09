@@ -1671,16 +1671,6 @@ public class LayoutRevisionWrapper implements LayoutRevision,
 	}
 
 	/**
-	* Returns <code>true</code> if this layout revision is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this layout revision is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _layoutRevision.isInTrash();
-	}
-
-	/**
 	* Returns <code>true</code> if this layout revision is pending.
 	*
 	* @return <code>true</code> if this layout revision is pending; <code>false</code> otherwise
@@ -1872,6 +1862,14 @@ public class LayoutRevisionWrapper implements LayoutRevision,
 	}
 
 	@Override
+	public java.lang.String getRegularURL(
+		javax.servlet.http.HttpServletRequest request)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutRevision.getRegularURL(request);
+	}
+
+	@Override
 	public com.liferay.portal.model.Theme getTheme()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -1910,8 +1908,8 @@ public class LayoutRevisionWrapper implements LayoutRevision,
 	}
 
 	@Override
-	public boolean hasDefaultAssetPublisherPortletId() {
-		return _layoutRevision.hasDefaultAssetPublisherPortletId();
+	public boolean isContentDisplayPage() {
+		return _layoutRevision.isContentDisplayPage();
 	}
 
 	@Override

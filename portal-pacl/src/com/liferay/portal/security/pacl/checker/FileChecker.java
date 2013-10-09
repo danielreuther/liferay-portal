@@ -32,7 +32,6 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.security.pacl.Reflection;
 import com.liferay.portal.spring.context.PortalContextLoaderListener;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
@@ -113,6 +112,7 @@ public class FileChecker extends BaseChecker {
 			"${user.home}",
 			"${user.name}",
 			"${weblogic.domain.dir}",
+			"${websphere.cell}",
 			"${websphere.profile.dir}",
 			StringPool.DOUBLE_SLASH
 		};
@@ -144,7 +144,8 @@ public class FileChecker extends BaseChecker {
 			ReleaseInfo.getVersion(), System.getProperty("resin.home"),
 			System.getProperty("user.dir"), System.getProperty("user.home"),
 			System.getProperty("user.name"), System.getenv("DOMAIN_HOME"),
-			System.getenv("USER_INSTALL_ROOT"), StringPool.SLASH
+			System.getenv("WAS_CELL"), System.getProperty("server.root"),
+			StringPool.SLASH
 		};
 
 		if (_log.isDebugEnabled()) {
@@ -204,22 +205,6 @@ public class FileChecker extends BaseChecker {
 	@Override
 	public boolean implies(Permission permission) {
 		if (_permissions.implies(permission)) {
-			return true;
-		}
-
-		int stackIndex = Reflection.getStackIndex(10, 9);
-
-		Class<?> callerClass1 = Reflection.getCallerClass(stackIndex);
-		Class<?> callerClass2 = Reflection.getCallerClass(stackIndex + 1);
-
-		Package callerClass1Package = callerClass1.getPackage();
-
-		String callerClass1PackageName = callerClass1Package.getName();
-
-		if (callerClass1PackageName.startsWith("java.") &&
-			!callerClass1.equals(ProcessBuilder.class) &&
-			isTrustedCaller(callerClass2, permission)) {
-
 			return true;
 		}
 
@@ -374,6 +359,10 @@ public class FileChecker extends BaseChecker {
 			addPermission(_workDir, actions);
 			addPermission(_workDir + "/-", actions);
 
+			if (ServerDetector.isWebLogic()) {
+				addPermission(_workDir + "/../-", actions);
+			}
+
 			if (servletContext != null) {
 				File tempDir = (File)servletContext.getAttribute(
 					JavaConstants.JAVAX_SERVLET_CONTEXT_TEMPDIR);
@@ -430,6 +419,31 @@ public class FileChecker extends BaseChecker {
 
 					if (pos != -1) {
 						fileName = fileName.substring(0, pos + 1);
+					}
+
+					if (ServerDetector.isJBoss7()) {
+						String jBossHomeDir = System.getProperty(
+							"jboss.home.dir");
+
+						if (fileName.startsWith(jBossHomeDir)) {
+							continue;
+						}
+					}
+
+					if (ServerDetector.isJetty()) {
+						String jettyHome = System.getProperty("jetty.home");
+
+						if (fileName.startsWith(jettyHome)) {
+							continue;
+						}
+					}
+
+					if (ServerDetector.isResin()) {
+						String resinHome = System.getProperty("resin.home");
+
+						if (fileName.startsWith(resinHome)) {
+							continue;
+						}
 					}
 
 					addCanonicalPath(paths, fileName);

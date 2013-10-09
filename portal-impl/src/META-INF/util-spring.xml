@@ -336,6 +336,7 @@
 				<entry key="com.liferay.portal.security.pacl.PACLAdvice" value="nextMethodInterceptor" />
 				<entry key="com.liferay.portal.spring.aop.ServiceBeanAutoProxyCreator" value="beanMatcher,methodInterceptor" />
 				<entry key="com.liferay.portal.spring.aop.ServiceBeanMatcher" value="" />
+				<entry key="com.liferay.portal.spring.aop.SkipAdvice" value="nextMethodInterceptor" />
 				<entry key="com.liferay.portal.spring.bean.BeanReferenceAnnotationBeanPostProcessor" value="" />
 				<entry key="com.liferay.portal.spring.context.PortletBeanFactoryCleaner" value="" />
 				<entry key="com.liferay.portal.spring.context.PortletBeanFactoryPostProcessor" value="" />
@@ -546,6 +547,15 @@
 		<property name="webCachePool">
 			<bean class="com.liferay.portal.webcache.WebCachePoolImpl">
 				<property name="singleVMPool" ref="com.liferay.portal.kernel.cache.SingleVMPool" />
+			</bean>
+		</property>
+	</bean>
+	<bean id="com.liferay.portal.kernel.webdav.methods.MethodFactoryRegistryUtil" class="com.liferay.portal.kernel.webdav.methods.MethodFactoryRegistryUtil">
+		<property name="methodFactoryRegistry">
+			<bean class="com.liferay.portal.webdav.methods.MethodFactoryRegistryImpl">
+				<property name="defaultMethodFactory">
+					<bean class="com.liferay.portal.webdav.methods.MethodFactoryImpl" depends-on="com.liferay.portal.kernel.xml.SAXReaderUtil" />
+				</property>
 			</bean>
 		</property>
 	</bean>
@@ -966,10 +976,16 @@
 			<bean class="com.liferay.portlet.dynamicdatamapping.util.DDMImpl" />
 		</property>
 	</bean>
-	<bean id="com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil" class="com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil">
-		<property name="DDMXML">
-			<bean class="com.liferay.portlet.dynamicdatamapping.util.DDMXMLImpl" />
+	<bean id="com.liferay.portlet.dynamicdatamapping.util.DDMXML" class="com.liferay.portlet.dynamicdatamapping.util.DDMXMLImpl">
+		<property name="XMLSchema">
+			<bean class="com.liferay.portal.xml.XMLSchemaImpl">
+				<property name="schemaLanguage" value="http://www.w3.org/2001/XMLSchema" />
+				<property name="systemId" value="http://www.liferay.com/dtd/liferay-ddm-structure_6_2_0.xsd" />
+			</bean>
 		</property>
+	</bean>
+	<bean id="com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil" class="com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil">
+		<property name="DDMXML" ref="com.liferay.portlet.dynamicdatamapping.util.DDMXML" />
 	</bean>
 	<bean id="com.liferay.portlet.dynamicdatamapping.util.DDMXSDUtil" class="com.liferay.portlet.dynamicdatamapping.util.DDMXSDUtil">
 		<property name="DDMXSD">

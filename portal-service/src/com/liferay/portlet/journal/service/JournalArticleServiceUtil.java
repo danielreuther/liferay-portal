@@ -851,6 +851,17 @@ public class JournalArticleServiceUtil {
 		return getService().getFoldersAndArticlesCount(groupId, folderIds);
 	}
 
+	public static java.util.List<com.liferay.portlet.journal.model.JournalArticle> getGroupArticles(
+		long groupId, long userId, long rootFolderId, int status, int start,
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getGroupArticles(groupId, userId, rootFolderId, status,
+			start, end, orderByComparator);
+	}
+
 	/**
 	* Returns an ordered range of all the web content articles matching the
 	* group, user, the root folder or any of its subfolders.
@@ -901,6 +912,14 @@ public class JournalArticleServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getGroupArticlesCount(groupId, userId, rootFolderId);
+	}
+
+	public static int getGroupArticlesCount(long groupId, long userId,
+		long rootFolderId, int status)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getGroupArticlesCount(groupId, userId, rootFolderId, status);
 	}
 
 	/**

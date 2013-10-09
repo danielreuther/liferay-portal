@@ -746,6 +746,14 @@ public class DLFolderLocalServiceUtil {
 				   .getFoldersCount(groupId, parentFolderId, includeMountfolders);
 	}
 
+	public static int getFoldersCount(long groupId, long parentFolderId,
+		int status, boolean includeMountfolders)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getFoldersCount(groupId, parentFolderId, status,
+			includeMountfolders);
+	}
+
 	public static com.liferay.portlet.documentlibrary.model.DLFolder getMountFolder(
 		long repositoryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -806,6 +814,12 @@ public class DLFolderLocalServiceUtil {
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .moveFolder(userId, folderId, parentFolderId, serviceContext);
+	}
+
+	public static void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().rebuildTree(companyId);
 	}
 
 	public static void unlockFolder(long groupId, long parentFolderId,

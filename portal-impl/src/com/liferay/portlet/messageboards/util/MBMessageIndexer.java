@@ -48,7 +48,6 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.messageboards.NoSuchDiscussionException;
-import com.liferay.portlet.messageboards.asset.MBMessageAssetRendererFactory;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBCategoryConstants;
 import com.liferay.portlet.messageboards.model.MBMessage;
@@ -60,8 +59,6 @@ import com.liferay.portlet.messageboards.service.permission.MBMessagePermission;
 import com.liferay.portlet.messageboards.service.persistence.MBCategoryActionableDynamicQuery;
 import com.liferay.portlet.messageboards.service.persistence.MBMessageActionableDynamicQuery;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -275,30 +272,6 @@ public class MBMessageIndexer extends BaseIndexer {
 			}
 		}
 
-		if (!message.isInTrash() && message.isInTrashThread()) {
-			addTrashFields(
-				document, MBThread.class.getName(), message.getThreadId(), null,
-				null, MBMessageAssetRendererFactory.TYPE);
-
-			String className = MBThread.class.getName();
-			long classPK = message.getThreadId();
-
-			MBThread thread = message.getThread();
-
-			if (thread.isInTrashContainer()) {
-				MBCategory category = thread.getTrashContainer();
-
-				className = MBCategory.class.getName();
-				classPK = category.getCategoryId();
-			}
-
-			document.addKeyword(Field.ROOT_ENTRY_CLASS_NAME, className);
-			document.addKeyword(Field.ROOT_ENTRY_CLASS_PK, classPK);
-
-			document.addKeyword(
-				Field.STATUS, WorkflowConstants.STATUS_IN_TRASH);
-		}
-
 		return document;
 	}
 
@@ -325,7 +298,7 @@ public class MBMessageIndexer extends BaseIndexer {
 	protected void doReindex(Object obj) throws Exception {
 		MBMessage message = (MBMessage)obj;
 
-		if (message.getStatus() != WorkflowConstants.STATUS_APPROVED) {
+		if (!message.isApproved() && !message.isInTrash()) {
 			return;
 		}
 
@@ -443,8 +416,6 @@ public class MBMessageIndexer extends BaseIndexer {
 			long companyId, long groupId, final long categoryId)
 		throws PortalException, SystemException {
 
-		final Collection<Document> documents = new ArrayList<Document>();
-
 		ActionableDynamicQuery actionableDynamicQuery =
 			new MBMessageActionableDynamicQuery() {
 
@@ -457,8 +428,12 @@ public class MBMessageIndexer extends BaseIndexer {
 
 				Property statusProperty = PropertyFactoryUtil.forName("status");
 
-				dynamicQuery.add(
-					statusProperty.eq(WorkflowConstants.STATUS_APPROVED));
+				Integer[] statuses = {
+					WorkflowConstants.STATUS_APPROVED,
+					WorkflowConstants.STATUS_IN_TRASH
+				};
+
+				dynamicQuery.add(statusProperty.in(statuses));
 			}
 
 			@Override
@@ -467,17 +442,16 @@ public class MBMessageIndexer extends BaseIndexer {
 
 				Document document = getDocument(message);
 
-				documents.add(document);
+				addDocument(document);
 			}
 
 		};
 
+		actionableDynamicQuery.setCompanyId(companyId);
 		actionableDynamicQuery.setGroupId(groupId);
+		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
 		actionableDynamicQuery.performActions();
-
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
 	}
 
 	protected void reindexRoot(final long companyId)

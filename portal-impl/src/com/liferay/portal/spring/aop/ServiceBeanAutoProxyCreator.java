@@ -14,8 +14,7 @@
 
 package com.liferay.portal.spring.aop;
 
-import com.liferay.portal.kernel.spring.aop.Skip;
-
+import java.util.List;
 import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
@@ -37,9 +36,6 @@ public class ServiceBeanAutoProxyCreator
 
 	public ServiceBeanAutoProxyCreator() {
 		_serviceBeanAopCacheManager = new ServiceBeanAopCacheManager();
-
-		_serviceBeanAopCacheManager.registerAnnotationChainableMethodAdvice(
-			Skip.class, null);
 	}
 
 	public void afterPropertiesSet() {
@@ -64,6 +60,32 @@ public class ServiceBeanAutoProxyCreator
 				chainableMethodAdviceInjectors.values()) {
 
 			chainableMethodAdviceInjector.inject();
+		}
+
+		if (!listableBeanFactory.containsBean(
+				ChainableMethodAdviceInjectorCollector.BEAN_NAME)) {
+
+			return;
+		}
+
+		ChainableMethodAdviceInjectorCollector
+			chainableMethodAdviceInjectorCollector =
+				(ChainableMethodAdviceInjectorCollector)
+					listableBeanFactory.getBean(
+						ChainableMethodAdviceInjectorCollector.BEAN_NAME);
+
+		List<String> beanNames =
+			chainableMethodAdviceInjectorCollector.getBeanNames();
+
+		for (String beanName : beanNames) {
+			Object bean = listableBeanFactory.getBean(beanName);
+
+			if (bean instanceof ChainableMethodAdviceInjector) {
+				ChainableMethodAdviceInjector chainableMethodAdviceInjector =
+					(ChainableMethodAdviceInjector)bean;
+
+				chainableMethodAdviceInjector.inject();
+			}
 		}
 	}
 

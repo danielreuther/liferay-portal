@@ -28,7 +28,9 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.Company;
 import com.liferay.portal.model.CompanyConstants;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.model.User;
@@ -169,13 +171,15 @@ public abstract class CMISRepositoryHandler extends BaseRepositoryImpl {
 	}
 
 	@Override
-	public int getFileEntriesCount(long folderId) throws SystemException {
+	public int getFileEntriesCount(long folderId)
+		throws PortalException, SystemException {
+
 		return _baseCmisRepository.getFileEntriesCount(folderId);
 	}
 
 	@Override
 	public int getFileEntriesCount(long folderId, long fileEntryTypeId)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return _baseCmisRepository.getFileEntriesCount(
 			folderId, fileEntryTypeId);
@@ -284,7 +288,7 @@ public abstract class CMISRepositoryHandler extends BaseRepositoryImpl {
 
 	@Override
 	public int getFoldersFileEntriesCount(List<Long> folderIds, int status)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return _baseCmisRepository.getFoldersFileEntriesCount(
 			folderIds, status);
@@ -302,8 +306,9 @@ public abstract class CMISRepositoryHandler extends BaseRepositoryImpl {
 		}
 
 		try {
-			String authType = companyLocalService.getCompany(
-				getCompanyId()).getAuthType();
+			Company company = companyLocalService.getCompany(getCompanyId());
+
+			String authType = company.getAuthType();
 
 			if (!authType.equals(CompanyConstants.AUTH_TYPE_ID)) {
 				User user = userLocalService.getUser(GetterUtil.getLong(login));
@@ -334,7 +339,7 @@ public abstract class CMISRepositoryHandler extends BaseRepositoryImpl {
 
 	@Override
 	public int getMountFoldersCount(long parentFolderId)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return _baseCmisRepository.getMountFoldersCount(parentFolderId);
 	}
@@ -403,7 +408,7 @@ public abstract class CMISRepositoryHandler extends BaseRepositoryImpl {
 
 		// LPS-20509
 
-		productName = productName.toLowerCase();
+		productName = StringUtil.toLowerCase(productName);
 
 		if (productName.contains("filenet") && productName.contains("p8")) {
 			return false;

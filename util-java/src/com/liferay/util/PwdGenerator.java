@@ -16,6 +16,7 @@ package com.liferay.util;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
 import com.liferay.portal.kernel.security.SecureRandomUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -85,16 +86,7 @@ public class PwdGenerator {
 
 		// Shuffle
 
-		for (int i = length; i > 1; i--) {
-			int position = random.nextInt(i);
-
-			if (position != (i -1)) {
-				char c = sb.charAt(position);
-
-				sb.setCharAt(position, sb.charAt(i - 1));
-				sb.setCharAt(i - 1, c);
-			}
-		}
+		RandomUtil.shuffle(random, sb);
 
 		return sb.toString();
 	}
@@ -132,13 +124,13 @@ public class PwdGenerator {
 			}
 
 			if (key.contains(KEY2)) {
-				if (password.equals(password.toLowerCase())) {
+				if (password.equals(StringUtil.toLowerCase(password))) {
 					continue;
 				}
 			}
 
 			if (key.contains(KEY3)) {
-				if (password.equals(password.toUpperCase())) {
+				if (password.equals(StringUtil.toUpperCase(password))) {
 					continue;
 				}
 			}

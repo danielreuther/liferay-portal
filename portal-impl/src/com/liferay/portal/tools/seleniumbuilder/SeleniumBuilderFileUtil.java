@@ -45,6 +45,8 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 /**
  * @author Michael Hashimoto
  */
@@ -52,6 +54,14 @@ public class SeleniumBuilderFileUtil {
 
 	public SeleniumBuilderFileUtil(String baseDir) {
 		_baseDir = baseDir;
+	}
+
+	public String escapeHtml(String input) {
+		return StringEscapeUtils.escapeHtml(input);
+	}
+
+	public String escapeJava(String input) {
+		return StringEscapeUtils.escapeJava(input);
 	}
 
 	public List<Element> getAllChildElements(
@@ -1090,7 +1100,9 @@ public class SeleniumBuilderFileUtil {
 			else if (elementName.equals("isset")) {
 				validateSimpleElement(fileName, element, new String[] {"var"});
 			}
-			else if (elementName.equals("not")) {
+			else if (elementName.equals("and") || elementName.equals("not") ||
+					 elementName.equals("or")) {
+
 				validateIfElement(
 					fileName, element, allowedBlockChildElementNames,
 					allowedExecuteAttributeNames,
@@ -1107,7 +1119,10 @@ public class SeleniumBuilderFileUtil {
 				1001, fileName, ifElement, allowedIfConditionElementNames);
 		}
 
-		if (ifElement.getName() == "not") {
+		if (Validator.equals(ifElement.getName(), "and") ||
+			Validator.equals(ifElement.getName(), "not") ||
+			Validator.equals(ifElement.getName(), "or")) {
+
 			return;
 		}
 
@@ -1149,7 +1164,9 @@ public class SeleniumBuilderFileUtil {
 					},
 					new String[] {"action", "macro"}, new String[] {"var"},
 					new String[] {
-						"condition", "contains", "equals", "isset", "not"});
+						"and", "condition", "contains", "equals", "isset",
+						"not", "or"
+					});
 			}
 			else if (elementName.equals("var")) {
 				validateVarElement(fileName, element);
@@ -1249,7 +1266,9 @@ public class SeleniumBuilderFileUtil {
 			String attributeName = attribute.getName();
 			String attributeValue = attribute.getValue();
 
-			if (Validator.isNull(attributeValue)) {
+			if (!_allowedNullAttributes.contains(attributeName) &&
+				Validator.isNull(attributeValue)) {
+
 				throwValidationException(
 					1006, fileName, element, attributeName);
 			}
@@ -1413,9 +1432,7 @@ public class SeleniumBuilderFileUtil {
 			}
 		}
 
-		String varText = element.getText();
-
-		if (Validator.isNull(varText) &&
+		if (!element.hasContent() &&
 			!attributeMap.containsKey("locator-key") &&
 			!attributeMap.containsKey("path") &&
 			!attributeMap.containsKey("value")) {
@@ -1444,6 +1461,10 @@ public class SeleniumBuilderFileUtil {
 		}
 		else {
 			String varValue = attributeMap.get("value");
+
+			if (element.hasContent()) {
+				varValue = element.getText();
+			}
 
 			Pattern pattern = Pattern.compile("\\$\\{([^\\}]*?)\\}");
 
@@ -1538,16 +1559,22 @@ public class SeleniumBuilderFileUtil {
 	private static final String _TPL_ROOT =
 		"com/liferay/portal/tools/seleniumbuilder/dependencies/";
 
+	private static List<String> _allowedNullAttributes = ListUtil.fromArray(
+		new String[] {
+			"arg1", "arg2", "message", "string", "substring", "value"
+		});
 	private static List<String> _allowedVarAttributes = ListUtil.fromArray(
 		new String[] {"line-number", "locator-key", "name", "path", "value"});
 	private static List<String> _methodNames = ListUtil.fromArray(
-		new String[] {"increment", "length", "lowercase", "replace"});
+		new String[] {
+			"getFirstNumber", "increment", "length", "lowercase", "replace"
+		});
 	private static List<String> _reservedTags = ListUtil.fromArray(
 		new String[] {
-			"case", "command", "condition", "contains", "default", "definition",
-			"echo", "else", "elseif", "equals", "execute", "fail", "if",
-			"isset", "not", "set-up", "td", "tear-down", "then", "tr", "while",
-			"var"
+			"and", "case", "command", "condition", "contains", "default",
+			"definition", "echo", "else", "elseif", "equals", "execute", "fail",
+			"if", "isset", "not", "or", "set-up", "td", "tear-down", "then",
+			"tr", "while", "var"
 		});
 
 	private String _baseDir;

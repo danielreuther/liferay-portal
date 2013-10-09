@@ -51,7 +51,7 @@ String orderByCol = ParamUtil.getString(request, "orderByCol");
 String orderByType = ParamUtil.getString(request, "orderByType");
 
 if (Validator.isNull(orderByCol)) {
-	orderByCol = portalPreferences.getValue(PortletKeys.JOURNAL, "order-by-col", StringPool.BLANK);
+	orderByCol = portalPreferences.getValue(PortletKeys.JOURNAL, "order-by-col", "modified-date");
 	orderByType = portalPreferences.getValue(PortletKeys.JOURNAL, "order-by-type", "asc");
 }
 else {
@@ -136,6 +136,8 @@ boolean advancedSearch = ParamUtil.getBoolean(request, displayTerms.ADVANCED_SEA
 
 String keywords = ParamUtil.getString(request, "keywords");
 
+int status = WorkflowConstants.STATUS_ANY;
+
 List results = null;
 int total = 0;
 %>
@@ -149,11 +151,15 @@ int total = 0;
 		if (displayTerms.getNavigation().equals("mine")) {
 			userId = themeDisplay.getUserId();
 		}
-		total = JournalArticleServiceUtil.getGroupArticlesCount(scopeGroupId, userId, folderId);
+		else if (!permissionChecker.isCompanyAdmin() || !permissionChecker.isGroupAdmin(scopeGroupId)) {
+			status = WorkflowConstants.STATUS_APPROVED;
+		}
+
+		total = JournalArticleServiceUtil.getGroupArticlesCount(scopeGroupId, userId, folderId, status);
 
 		searchContainer.setTotal(total);
 
-		results = JournalArticleServiceUtil.getGroupArticles(scopeGroupId, userId, folderId, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
+		results = JournalArticleServiceUtil.getGroupArticles(scopeGroupId, userId, folderId, status, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 		%>
 
 	</c:when>
@@ -182,11 +188,15 @@ int total = 0;
 	<c:otherwise>
 
 		<%
-		total = JournalFolderServiceUtil.getFoldersAndArticlesCount(scopeGroupId, folderId);
+		if (!permissionChecker.isCompanyAdmin() || !permissionChecker.isGroupAdmin(scopeGroupId)) {
+			status = WorkflowConstants.STATUS_APPROVED;
+		}
+
+		total = JournalFolderServiceUtil.getFoldersAndArticlesCount(scopeGroupId, folderId, status);
 
 		searchContainer.setTotal(total);
 
-		results = JournalFolderServiceUtil.getFoldersAndArticles(scopeGroupId, folderId, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
+		results = JournalFolderServiceUtil.getFoldersAndArticles(scopeGroupId, folderId, status, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 		%>
 
 	</c:otherwise>
@@ -264,6 +274,12 @@ for (int i = 0; i < results.size(); i++) {
 						rowURL.setParameter("groupId", String.valueOf(curArticle.getGroupId()));
 						rowURL.setParameter("folderId", String.valueOf(curArticle.getFolderId()));
 						rowURL.setParameter("articleId", curArticle.getArticleId());
+
+						if (!permissionChecker.isCompanyAdmin() || !permissionChecker.isGroupAdmin(scopeGroupId)) {
+							status = WorkflowConstants.STATUS_APPROVED;
+						}
+
+						rowURL.setParameter("status", String.valueOf(status));
 						%>
 
 						<liferay-ui:icon

@@ -6,6 +6,8 @@
 	<tear-down>
 		<execute macro="User#tearDownCP" />
 
+		<execute macro="Site#tearDownCP" />
+
 		<execute macro="Suborganization#tearDownCP" />
 
 		<execute macro="Organization#tearDownCP" />
@@ -223,6 +225,35 @@
 		</execute>
 	</command>
 
+	<command name="AddUserScreenNameNumber">
+		<var name="userEmailAddress" value="userea@liferay.com" />
+		<var name="userFirstName" value="userfn" />
+		<var name="userLastName" value="userln" />
+		<var name="userScreenName" value="11111" />
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#addCP">
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userFirstName" value="${userFirstName}" />
+			<var name="userLastName" value="${userLastName}" />
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#viewCP">
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userFirstName" value="${userFirstName}" />
+			<var name="userLastName" value="${userLastName}" />
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+	</command>
+
 	<command name="AddSite">
 		<var name="orgName" value="Organization Name" />
 		<var name="orgType" value="Regular Organization" />
@@ -280,6 +311,7 @@
 
 		<execute macro="Suborganization#addCP">
 			<var name="orgName" value="${orgName}" />
+			<var name="orgType" value="${orgType}" />
 			<var name="suborgName" value="${suborgName}" />
 			<var name="suborgType" value="${suborgType}" />
 		</execute>
@@ -407,6 +439,43 @@
 		</execute>
 	</command>
 
+	<command name="ErrorAddUserScreenNameNumberSiteId">
+		<var name="siteID" value="${siteID}" />
+		<var name="siteName" value="Site Name" />
+		<var name="userEmailAddress" value="userea@liferay.com" />
+		<var name="userFirstName" value="userfn" />
+		<var name="userLastName" value="userln" />
+		<var name="userScreenName" value="${siteID}" />
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="Site#addBlankCP">
+			<var name="siteName" value="${siteName}" />
+		</execute>
+
+		<execute macro="Page#gotoConfigurationCP">
+			<var name="portletName" value="Site Settings" />
+			<var name="siteScopeName" value="Site Name" />
+		</execute>
+
+		<var name="siteID" value="siteID" />
+
+		<execute action="CPSitesEdit#copy" locator-key1="SITE_ID" value1="siteID" />
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#addScreenNameNumberSiteIdCP">
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userFirstName" value="${userFirstName}" />
+			<var name="userLastName" value="${userLastName}" />
+			<var name="userScreenName" value="${SiteID}" />
+		</execute>
+	</command>
+
 	<command name="RemoveMember">
 		<var name="orgName" value="Organization Name" />
 		<var name="orgType" value="Regular Organization" />
@@ -504,5 +573,111 @@
 			<var name="userEmailAddress" value="test@liferay.com" />
 			<var name="password" value="test" />
 		</execute>
+	</command>
+
+	<command name="ViewBack">
+		<var name="orgName" value="Organization Name" />
+		<var name="orgType" value="Regular Organization" />
+		<var name="searchToken" value="Organization" />
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="Organization#addCP">
+			<var name="orgName" value="${orgName}" />
+			<var name="orgType" value="${orgType}" />
+		</execute>
+
+		<execute action="CPUsersandorganizationsAddorganization#assertElementPresent" locator-key1="BACK" />
+	</command>
+
+	<command name="ViewOrganizationSiteViaSitesDirectory">
+		<var name="orgName" value="Organization Name" />
+		<var name="orgName1" value="Organization Name 1" />
+		<var name="orgName2" value="Organization Name 2" />
+		<var name="orgType" value="Regular Organization" />
+		<var name="pageName" value="Sites Directory Page" />
+		<var name="portletName" value="Sites Directory" />
+		<var name="siteMember" value="Organization" />
+		<var name="siteName" value="Organization Name" />
+		<var name="sitePageName" value="Test Page" />
+		<var name="sitePageType" value="Public" />
+
+		<execute macro="Page#addPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="${portletName}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="Organization#addCP">
+			<var name="orgName" value="${orgName1}" />
+			<var name="orgType" value="${orgType}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="Organization#addSiteCP">
+			<var name="orgName" value="${orgName1}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Sites" />
+		</execute>
+
+		<execute macro="SitePage#addCP">
+			<var name="siteName" value="${siteName}" />
+			<var name="sitePageName" value="${sitePageName}" />
+		</execute>
+
+		<execute macro="Page#gotoCP">
+			<var name="portletName" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="Organization#addCP">
+			<var name="orgName" value="${orgName2}" />
+			<var name="orgType" value="${orgType}" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<var name="key_orgName" value="${orgName}" />
+
+		<execute action="PGSitesdirectory#assertTextEquals" locator-key1="SITE_ENTRY" value1="Liferay" />
+		<execute action="PGSitesdirectory#assertTextEquals" locator-key1="ORG_SITE_ENTRY" value1="${orgName1}" />
+		<execute action="PGSitesdirectory#assertTextNotPresent" locator-key1="ORG_SITE_ENTRY" value1="${orgName2}" />
+
+		<execute action="PGSitesdirectory#assertClick" locator-key1="ORG_SITE_ENTRY" value1="${orgName1}" />
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Breadcrumb" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<var name="key_orgName" value="${orgName}" />
+
+		<execute action="PGSitesdirectory#assertClick" locator-key1="ORG_SITE_ENTRY" value1="${orgName1}" />
+
+		<execute action="PGBreadcrumb#assertTextEquals" locator-key1="BREADCRUMB_ENTRY" value1="Organization Name 1/Test Page" />
+		<execute action="PGBreadcrumb#assertTextNotPresent" locator-key1="BREADCRUMB_ENTRY" value1="Liferay/Organization Name 1/Test Page/" />
+
+		<execute macro="Page#tearDownPG" />
 	</command>
 </definition>

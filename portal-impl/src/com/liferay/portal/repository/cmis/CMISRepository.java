@@ -756,12 +756,10 @@ public class CMISRepository extends BaseCmisRepository {
 
 			return folders.size() + documentIds.size();
 		}
-		else {
-			List<Object> foldersAndFileEntries = getFoldersAndFileEntries(
-				folderId);
 
-			return foldersAndFileEntries.size();
-		}
+		List<Object> foldersAndFileEntries = getFoldersAndFileEntries(folderId);
+
+		return foldersAndFileEntries.size();
 	}
 
 	@Override
@@ -1459,8 +1457,10 @@ public class CMISRepository extends BaseCmisRepository {
 				properties.put(PropertyIds.NAME, title);
 			}
 
-			String newObjectId = cmisFolder.updateProperties(
-				properties, true).getId();
+			ObjectId cmisFolderObjectId = cmisFolder.updateProperties(
+				properties, true);
+
+			String newObjectId = cmisFolderObjectId.getId();
 
 			if (!objectId.equals(newObjectId)) {
 				cmisFolder =
@@ -1668,11 +1668,14 @@ public class CMISRepository extends BaseCmisRepository {
 
 		queryConfig.setAttribute("capabilityQuery", capabilityQuery.value());
 
-		String queryString = CMISSearchQueryBuilderUtil.buildQuery(
-			searchContext, query);
-
 		String productName = repositoryInfo.getProductName();
 		String productVersion = repositoryInfo.getProductVersion();
+
+		queryConfig.setAttribute("repositoryProductName", productName);
+		queryConfig.setAttribute("repositoryProductVersion", productVersion);
+
+		String queryString = CMISSearchQueryBuilderUtil.buildQuery(
+			searchContext, query);
 
 		if (productName.contains("Nuxeo") && productVersion.contains("5.4")) {
 			queryString +=

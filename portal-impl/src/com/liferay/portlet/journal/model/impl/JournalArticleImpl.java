@@ -23,13 +23,14 @@ import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.webserver.WebServerServletTokenUtil;
-import com.liferay.portlet.journal.NoSuchFolderException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleResource;
 import com.liferay.portlet.journal.model.JournalFolder;
@@ -58,6 +59,15 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	public JournalArticleImpl() {
+	}
+
+	@Override
+	public String buildTreePath() throws PortalException, SystemException {
+		StringBundler sb = new StringBundler();
+
+		buildTreePath(sb, getFolder());
+
+		return sb.toString();
 	}
 
 	@Override
@@ -186,23 +196,8 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	}
 
 	@Override
-	public JournalFolder getTrashContainer()
-		throws PortalException, SystemException {
-
-		JournalFolder folder = null;
-
-		try {
-			folder = getFolder();
-		}
-		catch (NoSuchFolderException nsfe) {
-			return null;
-		}
-
-		if (folder.isInTrash()) {
-			return folder;
-		}
-
-		return folder.getTrashContainer();
+	public long getTrashEntryClassPK() {
+		return getResourcePrimKey();
 	}
 
 	@Override
@@ -217,18 +212,6 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 		}
 
 		return true;
-	}
-
-	@Override
-	public boolean isInTrashContainer()
-		throws PortalException, SystemException {
-
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
 	}
 
 	@Override
@@ -253,6 +236,20 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 	@Override
 	public void setSmallImageType(String smallImageType) {
 		_smallImageType = smallImageType;
+	}
+
+	protected void buildTreePath(StringBundler sb, JournalFolder folder)
+		throws PortalException, SystemException {
+
+		if (folder == null) {
+			sb.append(StringPool.SLASH);
+		}
+		else {
+			buildTreePath(sb, folder.getParentFolder());
+
+			sb.append(folder.getFolderId());
+			sb.append(StringPool.SLASH);
+		}
 	}
 
 	private String _smallImageType;

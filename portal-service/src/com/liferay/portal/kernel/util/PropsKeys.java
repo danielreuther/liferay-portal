@@ -105,6 +105,8 @@ public interface PropsKeys {
 
 	public static final String ASSET_FILTER_SEARCH_LIMIT = "asset.filter.search.limit";
 
+	public static final String ASSET_PUBLISHER_ASSET_ENTRY_QUERY_PROCESSORS = "asset.publisher.asset.entry.query.processors";
+
 	public static final String ASSET_PUBLISHER_DISPLAY_STYLE_DEFAULT = "asset.publisher.display.style.default";
 
 	public static final String ASSET_PUBLISHER_DISPLAY_STYLES = "asset.publisher.display.styles";
@@ -123,11 +125,17 @@ public interface PropsKeys {
 
 	public static final String ASSET_PUBLISHER_EMAIL_FROM_NAME = "asset.publisher.email.from.name";
 
+	public static final String ASSET_PUBLISHER_QUERY_FORM_CONFIGURATION = "asset.publisher.query.form.configuration";
+
 	public static final String ASSET_PUBLISHER_SEARCH_WITH_INDEX = "asset.publisher.search.with.index";
 
 	public static final String ASSET_RENDERER_ENABLED = "asset.renderer.enabled.";
 
+	public static final String ASSET_TAG_PERMISSIONS_ENABLED = "asset.tag.permissions.enabled";
+
 	public static final String ASSET_TAG_PROPERTIES_DEFAULT = "asset.tag.properties.default";
+
+	public static final String ASSET_TAG_PROPERTIES_ENABLED = "asset.tag.properties.enabled";
 
 	public static final String ASSET_TAG_SUGGESTIONS_ENABLED = "asset.tag.suggestions.enabled";
 
@@ -180,6 +188,8 @@ public interface PropsKeys {
 	public static final String AUTH_TOKEN_CHECK_ENABLED = "auth.token.check.enabled";
 
 	public static final String AUTH_TOKEN_IGNORE_ACTIONS = "auth.token.ignore.actions";
+
+	public static final String AUTH_TOKEN_IGNORE_ORIGINS = "auth.token.ignore.origins";
 
 	public static final String AUTH_TOKEN_IGNORE_PORTLETS = "auth.token.ignore.portlets";
 
@@ -423,6 +433,8 @@ public interface PropsKeys {
 
 	public static final String CLUSTER_LINK_NODE_BOOTUP_RESPONSE_TIMEOUT = "cluster.link.node.bootup.response.timeout";
 
+	public static final String CLUSTERABLE_ADVICE_CALL_MASTER_TIMEOUT = "clusterable.advice.call.master.timeout";
+
 	public static final String COMBO_ALLOWED_FILE_EXTENSIONS = "combo.allowed.file.extensions";
 
 	public static final String COMBO_CHECK_TIMESTAMP = "combo.check.timestamp";
@@ -523,11 +535,11 @@ public interface PropsKeys {
 
 	public static final String DEFAULT_ADMIN_SCREEN_NAME = "default.admin.screen.name";
 
-	public static final String DEFAULT_GUEST_PUBLIC_LAYOUT_COLUMN = "default.guest.public.layout.column-";
-
 	public static final String DEFAULT_GUEST_PUBLIC_LAYOUT_FRIENDLY_URL = "default.guest.public.layout.friendly.url";
 
 	public static final String DEFAULT_GUEST_PUBLIC_LAYOUT_NAME = "default.guest.public.layout.name";
+
+	public static final String DEFAULT_GUEST_PUBLIC_LAYOUT_PREFIX = "default.guest.public.layout.";
 
 	public static final String DEFAULT_GUEST_PUBLIC_LAYOUT_REGULAR_COLOR_SCHEME_ID = "default.guest.public.layout.regular.color.scheme.id";
 
@@ -553,11 +565,11 @@ public interface PropsKeys {
 
 	public static final String DEFAULT_REGULAR_THEME_ID = "default.regular.theme.id";
 
-	public static final String DEFAULT_USER_PRIVATE_LAYOUT_COLUMN = "default.user.private.layout.column-";
-
 	public static final String DEFAULT_USER_PRIVATE_LAYOUT_FRIENDLY_URL = "default.user.private.layout.friendly.url";
 
 	public static final String DEFAULT_USER_PRIVATE_LAYOUT_NAME = "default.user.private.layout.name";
+
+	public static final String DEFAULT_USER_PRIVATE_LAYOUT_PREFIX = "default.user.private.layout.";
 
 	public static final String DEFAULT_USER_PRIVATE_LAYOUT_REGULAR_COLOR_SCHEME_ID = "default.user.private.layout.regular.color.scheme.id";
 
@@ -571,11 +583,11 @@ public interface PropsKeys {
 
 	public static final String DEFAULT_USER_PRIVATE_LAYOUTS_LAR = "default.user.private.layouts.lar";
 
-	public static final String DEFAULT_USER_PUBLIC_LAYOUT_COLUMN = "default.user.public.layout.column-";
-
 	public static final String DEFAULT_USER_PUBLIC_LAYOUT_FRIENDLY_URL = "default.user.public.layout.friendly.url";
 
 	public static final String DEFAULT_USER_PUBLIC_LAYOUT_NAME = "default.user.public.layout.name";
+
+	public static final String DEFAULT_USER_PUBLIC_LAYOUT_PREFIX = "default.user.public.layout.";
 
 	public static final String DEFAULT_USER_PUBLIC_LAYOUT_REGULAR_COLOR_SCHEME_ID = "default.user.public.layout.regular.color.scheme.id";
 
@@ -1463,6 +1475,8 @@ public interface PropsKeys {
 
 	public static final String LOGIN_CREATE_ACCOUNT_ALLOW_CUSTOM_PASSWORD = "login.create.account.allow.custom.password";
 
+	public static final String LOGIN_DIALOG_DISABLED = "login.dialog.disabled";
+
 	public static final String LOGIN_EMAIL_FROM_ADDRESS = "login.email.from.address";
 
 	public static final String LOGIN_EMAIL_FROM_NAME = "login.email.from.name";
@@ -1645,8 +1659,6 @@ public interface PropsKeys {
 
 	public static final String MINIFIER_ENABLED = "minifier.enabled";
 
-	public static final String MINIFIER_FILES_LIMIT = "minifier.files.limit";
-
 	public static final String MINIFIER_INLINE_CONTENT_CACHE_SIZE = "minifier.inline.content.cache.size";
 
 	public static final String MINIFIER_INLINE_CONTENT_CACHE_SKIP_CSS = "minifier.inline.content.cache.skip.css";
@@ -1688,8 +1700,6 @@ public interface PropsKeys {
 	public static final String MODULE_FRAMEWORK_SYSTEM_BUNDLE_IGNORED_FRAGMENTS = "module.framework.system.bundle.ignored.fragments";
 
 	public static final String MODULE_FRAMEWORK_SYSTEM_PACKAGES_EXTRA = "module.framework.system.packages.extra";
-
-	public static final String MONITORING_DATA_SAMPLE_THREAD_LOCAL = "monitoring.data.sample.thread.local";
 
 	public static final String MONITORING_PORTAL_REQUEST = "monitoring.portal.request";
 
@@ -1968,6 +1978,8 @@ public interface PropsKeys {
 	public static final String PORTAL_JAAS_ENABLE = "portal.jaas.enable";
 
 	public static final String PORTAL_JAAS_IMPL = "portal.jaas.impl";
+
+	public static final String PORTAL_JAAS_PLAIN_PASSWORD = "portal.jaas.plain.password";
 
 	public static final String PORTAL_JAAS_STRICT_PASSWORD = "portal.jaas.strict.password";
 
@@ -2297,6 +2309,8 @@ public interface PropsKeys {
 
 	public static final String SOCIAL_ACTIVITY_COUNTER_PERIOD_LENGTH = "social.activity.counter.period.length";
 
+	public static final String SOCIAL_ACTIVITY_FILTER_SEARCH_LIMIT = "social.activity.filter.search.limit";
+
 	public static final String SOCIAL_ACTIVITY_LOCK_RETRY_DELAY = "social.activity.lock.retry.delay";
 
 	public static final String SOCIAL_ACTIVITY_LOCK_TIMEOUT = "social.activity.lock.timeout";
@@ -2418,6 +2432,8 @@ public interface PropsKeys {
 	public static final String TRANSACTION_MANAGER_IMPL = "transaction.manager.impl";
 
 	public static final String TRANSACTIONAL_CACHE_ENABLED = "transactional.cache.enable";
+
+	public static final String TRANSACTIONAL_CACHE_NAMES = "transactional.cache.names";
 
 	public static final String TRANSLATIONS_DISABLED = "translations.disabled";
 

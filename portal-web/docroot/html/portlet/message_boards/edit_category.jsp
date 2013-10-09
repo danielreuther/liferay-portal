@@ -68,7 +68,7 @@ else {
 	}
 
 	if (!layout.isTypeControlPanel()) {
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-category"), currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-category[message-board]"), currentURL);
 	}
 }
 %>
@@ -78,7 +78,7 @@ else {
 <liferay-ui:header
 	backURL="<%= redirect %>"
 	localizeTitle="<%= (category == null) %>"
-	title='<%= (category == null) ? "add-category" : LanguageUtil.format(pageContext, "edit-x", category.getName()) %>'
+	title='<%= (category == null) ? "add-category[message-board]" : LanguageUtil.format(pageContext, "edit-x", category.getName()) %>'
 />
 
 <portlet:actionURL var="editCategoryURL">
@@ -119,13 +119,8 @@ else {
 			%>
 
 			<c:if test="<%= category != null %>">
-				<aui:field-wrapper label="parent-category">
-					<portlet:renderURL var="viewCategoryURL">
-						<portlet:param name="struts_action" value="/message_boards/view" />
-						<portlet:param name="mbCategoryId" value="<%= String.valueOf(parentCategoryId) %>" />
-					</portlet:renderURL>
-
-					<aui:a href="<%= viewCategoryURL %>" id="parentCategoryName"><%= HtmlUtil.escape(parentCategoryName) %></aui:a>
+				<aui:field-wrapper label="parent-category[message-board]">
+					<liferay-ui:input-resource id="parentCategoryName" url="<%= parentCategoryName %>" />
 				</aui:field-wrapper>
 			</c:if>
 		</c:if>

@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.auth.AuthTokenUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -79,16 +80,18 @@ public class UpdateEmailAddressAction extends Action {
 
 				return actionMapping.findForward("portal.error");
 			}
-			else {
-				PortalUtil.sendError(e, request, response);
 
-				return null;
-			}
+			PortalUtil.sendError(e, request, response);
+
+			return null;
 		}
 	}
 
 	protected void updateEmailAddress(HttpServletRequest request)
 		throws Exception {
+
+		AuthTokenUtil.checkCSRFToken(
+			request, UpdateEmailAddressAction.class.getName());
 
 		long userId = PortalUtil.getUserId(request);
 		String password = AdminUtil.getUpdateUserPassword(request, userId);

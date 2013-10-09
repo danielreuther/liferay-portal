@@ -67,6 +67,7 @@ import com.liferay.portal.kernel.servlet.taglib.FileAvailabilityUtil;
 import com.liferay.portal.kernel.struts.StrutsAction;
 import com.liferay.portal.kernel.struts.StrutsPortletAction;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -88,6 +89,7 @@ import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.model.BaseModel;
+import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.Release;
 import com.liferay.portal.repository.util.RepositoryFactory;
@@ -147,12 +149,15 @@ import com.liferay.portal.struts.StrutsActionRegistryUtil;
 import com.liferay.portal.upgrade.UpgradeProcessUtil;
 import com.liferay.portal.util.CustomJspRegistryUtil;
 import com.liferay.portal.util.JavaScriptBundleUtil;
+import com.liferay.portal.util.LayoutSettings;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.ControlPanelEntry;
 import com.liferay.portlet.DefaultControlPanelEntryFactory;
+import com.liferay.portlet.assetpublisher.util.AssetEntryQueryProcessor;
+import com.liferay.portlet.assetpublisher.util.AssetPublisherUtil;
 import com.liferay.portlet.documentlibrary.antivirus.AntivirusScanner;
 import com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerUtil;
 import com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerWrapper;
@@ -200,15 +205,18 @@ public class HookHotDeployListener
 
 	public static final String[] SUPPORTED_PROPERTIES = {
 		"admin.default.group.names", "admin.default.role.names",
-		"admin.default.user.group.names", "asset.publisher.display.styles",
-		"auth.forward.by.last.path", "auth.public.paths",
-		"auth.verifier.pipeline", "auto.deploy.listeners",
+		"admin.default.user.group.names",
+		"asset.publisher.asset.entry.query.processors",
+		"asset.publisher.display.styles",
+		"asset.publisher.query.form.configuration", "auth.forward.by.last.path",
+		"auth.public.paths", "auth.verifier.pipeline", "auto.deploy.listeners",
 		"application.startup.events", "auth.failure", "auth.max.failures",
-		"auth.token.ignore.actions", "auth.token.ignore.portlets",
-		"auth.token.impl", "auth.pipeline.post", "auth.pipeline.pre",
-		"auto.login.hooks", "captcha.check.portal.create_account",
-		"captcha.engine.impl", "company.default.locale",
-		"company.default.time.zone", "company.settings.form.authentication",
+		"auth.token.ignore.actions", "auth.token.ignore.origins",
+		"auth.token.ignore.portlets", "auth.token.impl", "auth.pipeline.post",
+		"auth.pipeline.pre", "auto.login.hooks",
+		"captcha.check.portal.create_account", "captcha.engine.impl",
+		"company.default.locale", "company.default.time.zone",
+		"company.settings.form.authentication",
 		"company.settings.form.configuration",
 		"company.settings.form.identification",
 		"company.settings.form.miscellaneous",
@@ -235,8 +243,8 @@ public class HookHotDeployListener
 		"layout.user.public.layouts.power.user.required",
 		"ldap.attrs.transformer.impl", "locales", "locales.beta",
 		"locales.enabled", "lock.listeners",
-		"login.create.account.allow.custom.password", "login.events.post",
-		"login.events.pre", "login.form.navigation.post",
+		"login.create.account.allow.custom.password", "login.dialog.disabled",
+		"login.events.post", "login.events.pre", "login.form.navigation.post",
 		"login.form.navigation.pre", "logout.events.post", "logout.events.pre",
 		"mail.hook.impl", "my.sites.show.private.sites.with.no.layouts",
 		"my.sites.show.public.sites.with.no.layouts",
@@ -298,7 +306,10 @@ public class HookHotDeployListener
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering hook for ", t);
+				hotDeployEvent,
+				"Error registering hook for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -311,7 +322,10 @@ public class HookHotDeployListener
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering hook for ", t);
+				hotDeployEvent,
+				"Error unregistering hook for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -406,6 +420,27 @@ public class HookHotDeployListener
 		}
 
 		resetPortalProperties(servletContextName, portalProperties, false);
+
+		if (portalProperties.containsKey(
+				PropsKeys.ASSET_PUBLISHER_ASSET_ENTRY_QUERY_PROCESSORS)) {
+
+			String[] assetQueryProcessorClassNames = StringUtil.split(
+				portalProperties.getProperty(
+					PropsKeys.ASSET_PUBLISHER_ASSET_ENTRY_QUERY_PROCESSORS));
+
+			for (String assetQueryProcessorClassName :
+					assetQueryProcessorClassNames) {
+
+				AssetPublisherUtil.unregisterAssetQueryProcessor(
+					assetQueryProcessorClassName);
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Unregistered asset query processor " +
+							assetQueryProcessorClassName);
+				}
+			}
+		}
 
 		if (portalProperties.containsKey(PropsKeys.AUTH_TOKEN_IMPL)) {
 			AuthTokenWrapper authTokenWrapper =
@@ -946,7 +981,7 @@ public class HookHotDeployListener
 		if ((x != -1) && (y != 1)) {
 			String localeKey = languagePropertiesLocation.substring(x + 1, y);
 
-			locale = LocaleUtil.fromLanguageId(localeKey);
+			locale = LocaleUtil.fromLanguageId(localeKey, true, false);
 		}
 
 		return locale;
@@ -1269,9 +1304,9 @@ public class HookHotDeployListener
 		throws Exception {
 
 		if (eventName.equals(APPLICATION_STARTUP_EVENTS)) {
-			SimpleAction simpleAction =
-				(SimpleAction)portletClassLoader.loadClass(
-					eventClassName).newInstance();
+			Class<?> clazz = portletClassLoader.loadClass(eventClassName);
+
+			SimpleAction simpleAction = (SimpleAction)clazz.newInstance();
 
 			simpleAction = new InvokerSimpleAction(
 				simpleAction, portletClassLoader);
@@ -1296,8 +1331,9 @@ public class HookHotDeployListener
 		}
 
 		if (_propsKeysEvents.contains(eventName)) {
-			Action action = (Action)portletClassLoader.loadClass(
-				eventClassName).newInstance();
+			Class<?> clazz = portletClassLoader.loadClass(eventClassName);
+
+			Action action = (Action)clazz.newInstance();
 
 			action = new InvokerAction(action, portletClassLoader);
 
@@ -1307,9 +1343,9 @@ public class HookHotDeployListener
 		}
 
 		if (_propsKeysSessionEvents.contains(eventName)) {
-			SessionAction sessionAction =
-				(SessionAction)portletClassLoader.loadClass(
-					eventClassName).newInstance();
+			Class<?> clazz = portletClassLoader.loadClass(eventClassName);
+
+			SessionAction sessionAction = (SessionAction)clazz.newInstance();
 
 			sessionAction = new InvokerSessionAction(
 				sessionAction, portletClassLoader);
@@ -1692,6 +1728,32 @@ public class HookHotDeployListener
 		}
 
 		resetPortalProperties(servletContextName, portalProperties, true);
+
+		if (portalProperties.containsKey(
+				PropsKeys.ASSET_PUBLISHER_ASSET_ENTRY_QUERY_PROCESSORS)) {
+
+			String[] assetQueryProcessorClassNames = StringUtil.split(
+				portalProperties.getProperty(
+					PropsKeys.ASSET_PUBLISHER_ASSET_ENTRY_QUERY_PROCESSORS));
+
+			for (String assetQueryProcessorClassName :
+					assetQueryProcessorClassNames) {
+
+				AssetEntryQueryProcessor assetQueryProcessor =
+					(AssetEntryQueryProcessor)newInstance(
+						portletClassLoader, AssetEntryQueryProcessor.class,
+						assetQueryProcessorClassName);
+
+				AssetPublisherUtil.registerAssetQueryProcessor(
+					assetQueryProcessorClassName, assetQueryProcessor);
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Registered asset query processor " +
+							assetQueryProcessorClassName);
+				}
+			}
+		}
 
 		if (portalProperties.containsKey(PropsKeys.AUTH_PUBLIC_PATHS)) {
 			initAuthPublicPaths(servletContextName, portalProperties);
@@ -2295,7 +2357,7 @@ public class HookHotDeployListener
 			for (Element dispatcherElement : dispatcherElements) {
 				String dispatcher = dispatcherElement.getTextTrim();
 
-				dispatcher = dispatcher.toUpperCase();
+				dispatcher = StringUtil.toUpperCase(dispatcher);
 
 				dispatchers.add(dispatcher);
 			}
@@ -2373,7 +2435,8 @@ public class HookHotDeployListener
 
 		for (String key : _PROPS_VALUES_BOOLEAN) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2395,7 +2458,8 @@ public class HookHotDeployListener
 
 		for (String key : _PROPS_VALUES_INTEGER) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2417,7 +2481,8 @@ public class HookHotDeployListener
 
 		for (String key : _PROPS_VALUES_LONG) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2439,7 +2504,8 @@ public class HookHotDeployListener
 
 		for (String key : _PROPS_VALUES_STRING) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2485,6 +2551,10 @@ public class HookHotDeployListener
 			AuthTokenWhitelistUtil.resetPortletCSRFWhitelistActions();
 		}
 
+		if (containsKey(portalProperties, AUTH_TOKEN_IGNORE_ORIGINS)) {
+			AuthTokenWhitelistUtil.resetOriginCSRFWhitelist();
+		}
+
 		if (containsKey(portalProperties, AUTH_TOKEN_IGNORE_PORTLETS)) {
 			AuthTokenWhitelistUtil.resetPortletCSRFWhitelist();
 		}
@@ -2515,7 +2585,8 @@ public class HookHotDeployListener
 
 		for (String key : propsValuesStringArray) {
 			String fieldName = StringUtil.replace(
-				key.toUpperCase(), CharPool.PERIOD, CharPool.UNDERLINE);
+				StringUtil.toUpperCase(key), CharPool.PERIOD,
+				CharPool.UNDERLINE);
 
 			if (!containsKey(portalProperties, key)) {
 				continue;
@@ -2573,6 +2644,35 @@ public class HookHotDeployListener
 		value = stringArraysContainer.getStringArray();
 
 		field.set(null, value);
+
+		if (key.equals(PropsKeys.LAYOUT_TYPES)) {
+			Map<String, LayoutSettings> layoutSettingsMap =
+				LayoutSettings.getLayoutSettingsMap();
+
+			Set<Map.Entry<String, LayoutSettings>> set =
+				layoutSettingsMap.entrySet();
+
+			Iterator<Map.Entry<String, LayoutSettings>> iterator =
+				set.iterator();
+
+			while (iterator.hasNext()) {
+				Map.Entry<String, LayoutSettings> entry = iterator.next();
+
+				String layoutType = entry.getKey();
+
+				if (!layoutType.equals(LayoutConstants.TYPE_CONTROL_PANEL) &&
+					!ArrayUtil.contains(value, layoutType)) {
+
+					iterator.remove();
+				}
+			}
+
+			for (String type : value) {
+				if (!layoutSettingsMap.containsKey(type)) {
+					LayoutSettings.addLayoutSetting(type);
+				}
+			}
+		}
 	}
 
 	protected void updateRelease(
@@ -2660,7 +2760,7 @@ public class HookHotDeployListener
 		"layout.user.public.layouts.auto.create",
 		"layout.user.public.layouts.enabled",
 		"layout.user.public.layouts.power.user.required",
-		"login.create.account.allow.custom.password",
+		"login.create.account.allow.custom.password", "login.dialog.disabled",
 		"my.sites.show.private.sites.with.no.layouts",
 		"my.sites.show.public.sites.with.no.layouts",
 		"my.sites.show.user.private.sites.with.no.layouts",
@@ -2684,7 +2784,8 @@ public class HookHotDeployListener
 	};
 
 	private static final String[] _PROPS_VALUES_MERGE_STRING_ARRAY = {
-		"auth.token.ignore.actions", "auth.token.ignore.portlets",
+		"asset.publisher.query.form.configuration", "auth.token.ignore.actions",
+		"auth.token.ignore.origins", "auth.token.ignore.portlets",
 		"admin.default.group.names", "admin.default.role.names",
 		"admin.default.user.group.names", "asset.publisher.display.styles",
 		"company.settings.form.authentication",

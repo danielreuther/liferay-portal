@@ -21,16 +21,20 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletContextUtil;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.servlet.filters.dynamiccss.DynamicCSSUtil;
+import com.liferay.portal.util.AggregateUtil;
 import com.liferay.portal.util.MinifierUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
@@ -43,8 +47,10 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
@@ -86,6 +92,13 @@ public class ComboServlet extends HttpServlet {
 
 		Enumeration<String> enu = request.getParameterNames();
 
+		if (ServerDetector.isWebSphere()) {
+			Map<String, String[]> parameterMap = HttpUtil.getParameterMap(
+				request.getQueryString());
+
+			enu = Collections.enumeration(parameterMap.keySet());
+		}
+
 		while (enu.hasMoreElements()) {
 			String name = enu.nextElement();
 
@@ -97,7 +110,9 @@ public class ComboServlet extends HttpServlet {
 		}
 
 		if (modulePathsSet.size() == 0) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			response.sendError(
+				HttpServletResponse.SC_BAD_REQUEST,
+				"Modules paths set is empty");
 
 			return;
 		}
@@ -129,7 +144,7 @@ public class ComboServlet extends HttpServlet {
 			if (Validator.isNull(minifierType)) {
 				minifierType = "js";
 
-				if (extension.equalsIgnoreCase(_CSS_EXTENSION)) {
+				if (StringUtil.equalsIgnoreCase(extension, _CSS_EXTENSION)) {
 					minifierType = "css";
 				}
 			}
@@ -187,7 +202,7 @@ public class ComboServlet extends HttpServlet {
 
 		String contentType = ContentTypes.TEXT_JAVASCRIPT;
 
-		if (extension.equalsIgnoreCase(_CSS_EXTENSION)) {
+		if (StringUtil.equalsIgnoreCase(extension, _CSS_EXTENSION)) {
 			contentType = ContentTypes.TEXT_CSS;
 		}
 
@@ -262,6 +277,17 @@ public class ComboServlet extends HttpServlet {
 							HttpHeaders.CACHE_CONTROL,
 							HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE);
 					}
+
+					String baseURL = StringPool.BLANK;
+
+					int index = resourcePath.lastIndexOf(CharPool.SLASH);
+
+					if (index != -1) {
+						baseURL = resourcePath.substring(0, index + 1);
+					}
+
+					stringFileContent = AggregateUtil.updateRelativeURLs(
+						stringFileContent, baseURL);
 
 					stringFileContent = MinifierUtil.minifyCss(
 						stringFileContent);

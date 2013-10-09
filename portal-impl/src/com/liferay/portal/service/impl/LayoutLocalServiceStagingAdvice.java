@@ -518,7 +518,8 @@ public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 					systemEventHierarchyEntry.getExtraData());
 			}
 			finally {
-				SystemEventHierarchyEntryThreadLocal.pop();
+				SystemEventHierarchyEntryThreadLocal.pop(
+					Layout.class, layout.getPlid());
 			}
 		}
 	}
@@ -586,9 +587,10 @@ public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 		long layoutSetBranchId = 0;
 
 		if (!showIncomplete) {
+			long userId = 0;
+
 			try {
-				long userId = GetterUtil.getLong(
-					PrincipalThreadLocal.getName());
+				userId = GetterUtil.getLong(PrincipalThreadLocal.getName());
 
 				if (userId > 0) {
 					User user = UserLocalServiceUtil.getUser(userId);
@@ -600,6 +602,9 @@ public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 				}
 			}
 			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("No layout set branch found for user " + userId);
+				}
 			}
 		}
 

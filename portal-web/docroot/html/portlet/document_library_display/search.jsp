@@ -65,11 +65,9 @@ int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFo
 		title="search"
 	/>
 
-	<span class="form-search">
-		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" inlineField="<%= true %>" label="" name="keywords" size="30" title="search-documents" type="text" value="<%= keywords %>" />windowState.equals(WindowState.MAXIMIZED)
-
-		<aui:button type="submit" value="search" />
-	</span>
+	<div class="form-search">
+		<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-documents") %>' />
+	</div>
 
 	<br /><br />
 
@@ -168,7 +166,9 @@ int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFo
 			FileEntry fileEntry = null;
 			Folder folder = null;
 
-			if (searchResult.getClassName().equals(DLFileEntry.class.getName())) {
+			String className = searchResult.getClassName();
+
+			if (className.equals(DLFileEntry.class.getName()) || FileEntry.class.isAssignableFrom(Class.forName(className))) {
 				fileEntry = DLAppLocalServiceUtil.getFileEntry(searchResult.getClassPK());
 			}
 			else if (searchResult.getClassName().equals(DLFolder.class.getName())) {

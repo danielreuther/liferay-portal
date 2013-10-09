@@ -163,10 +163,25 @@ if (!selectableTree) {
 				json.layouts,
 				function(node) {
 					var childLayouts = [];
+					var cssIcons = {};
 					var total = 0;
+
+					var iconClassName = 'icon-link';
 
 					var hasChildren = node.hasChildren;
 					var nodeChildren = node.children;
+					var nodeType = node.type;
+
+					if ((nodeType === 'embedded') ||
+						(nodeType === 'link_to_layout') ||
+						(nodeType === 'url')) {
+
+						cssIcons.pages = {
+							iconCollapsed: iconClassName,
+							iconExpanded: iconClassName,
+							iconLeaf: iconClassName
+						};
+					}
 
 					if (nodeChildren) {
 						childLayouts = nodeChildren.layouts;
@@ -174,6 +189,12 @@ if (!selectableTree) {
 					}
 
 					var expanded = (total > 0);
+
+					var type = 'task';
+
+					<c:if test="<%= !selectableTree %>">
+						type = (nodeChildren && expanded) ? 'node' : 'io';
+					</c:if>
 
 					var newNode = {
 						<c:if test="<%= saveState %>">
@@ -223,7 +244,7 @@ if (!selectableTree) {
 							checked: true,
 						</c:if>
 
-						cssClasses: TREE_CSS_CLASSES,
+						cssClasses: A.merge(TREE_CSS_CLASSES, cssIcons),
 						draggable: node.sortable,
 						expanded: expanded,
 						id: TreeUtil.createListItemId(node.groupId, node.layoutId, node.plid),
@@ -275,7 +296,7 @@ if (!selectableTree) {
 							start: Math.max(childLayouts.length - TreeUtil.PAGINATION_LIMIT, 0),
 							total: total
 						},
-						type: '<%= !selectableTree ? "io" : "task" %>'
+						type: type
 					};
 
 					if (nodeChildren && expanded) {

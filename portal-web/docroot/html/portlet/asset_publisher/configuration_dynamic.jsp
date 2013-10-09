@@ -337,15 +337,27 @@ String selectStyle = (String)request.getAttribute("configuration.jsp-selectStyle
 						{
 							contentBox: '#<portlet:namespace />queryRules > fieldset',
 							fieldIndexes: '<portlet:namespace />queryLogicIndexes',
+							namespace: '<portlet:namespace />',
 							url: '<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/portlet_configuration/edit_query_rule" /></portlet:renderURL>'
 						}
 					).render();
 				</aui:script>
 			</liferay-ui:panel>
 
-			<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="assetPublisherCustomUserAttributesQueryRulesPanelContainer" persistState="<%= true %>" title="custom-user-attributes">
-				<aui:input helpMessage="custom-user-attributes-help" label="displayed-assets-must-match-these-custom-user-profile-attributes" name="preferences--customUserAttributes--" value="<%= customUserAttributes %>" />
-			</liferay-ui:panel>
+			<%
+			String[] sections = PropsValues.ASSET_PUBLISHER_QUERY_FORM_CONFIGURATION;
+
+			for (String section : sections) {
+				String sectionId = renderResponse.getNamespace() + _getSectionId(section);
+			%>
+
+				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "assetPublisherPanelContainerSection_" + sectionId %>' persistState="<%= true %>" title="<%= section %>">
+					<liferay-util:include page='<%= "/html/portlet/asset_publisher/query/" + _getSectionJsp(section) + ".jsp" %>' />
+				</liferay-ui:panel>
+
+			<%
+			}
+			%>
 
 			<c:if test="<%= !rootPortletId.equals(PortletKeys.HIGHEST_RATED_ASSETS) && !rootPortletId.equals(PortletKeys.MOST_VIEWED_ASSETS) %>">
 				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="assetPublisherOrderingAndGroupingPanel" persistState="<%= true %>" title="ordering-and-grouping">
@@ -561,7 +573,7 @@ String selectStyle = (String)request.getAttribute("configuration.jsp-selectStyle
 
 			<%
 			for (Tuple classTypeFieldName : classTypeFieldNames) {
-				String value = DDMIndexerUtil.encodeName(subtypeId, (String)classTypeFieldName.getObject(1));
+				String value = DDMIndexerUtil.encodeName((Long)classTypeFieldName.getObject(3), (String)classTypeFieldName.getObject(1));
 				String selectedOrderByColumn1 = StringPool.BLANK;
 				String selectedOrderByColumn2 = StringPool.BLANK;
 
@@ -766,5 +778,13 @@ private long[] _getCategorizableGroupIds(long[] groupIds) throws Exception {
 	}
 
 	return ArrayUtil.toLongArray(categorizableGroupIds);
+}
+
+private String _getSectionId(String name) {
+	return TextFormatter.format(name, TextFormatter.M);
+}
+
+private String _getSectionJsp(String name) {
+	return TextFormatter.format(name, TextFormatter.N);
 }
 %>

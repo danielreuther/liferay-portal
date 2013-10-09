@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.json.JSONSerializer;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -394,6 +395,32 @@ public class JSONServiceAction extends JSONAction {
 		}
 	}
 
+	/**
+	 * @see JSONWebServiceServiceAction#getCSRFOrigin(HttpServletRequest)
+	 */
+	@Override
+	protected String getCSRFOrigin(HttpServletRequest request) {
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(ClassUtil.getClassName(this));
+		sb.append(StringPool.COLON);
+		sb.append(StringPool.SLASH);
+
+		String serviceClassName = ParamUtil.getString(
+			request, "serviceClassName");
+
+		sb.append(serviceClassName);
+
+		sb.append(StringPool.POUND);
+
+		String serviceMethodName = ParamUtil.getString(
+			request, "serviceMethodName");
+
+		sb.append(serviceMethodName);
+
+		return sb.toString();
+	}
+
 	protected Object[] getMethodAndParameterTypes(
 			Class<?> clazz, String methodName, String[] parameters,
 			String[] parameterTypes)
@@ -482,15 +509,14 @@ public class JSONServiceAction extends JSONAction {
 
 			return methodAndParameterTypes;
 		}
-		else {
-			String parametersString = StringUtil.merge(parameters);
 
-			_log.error(
-				"No method found for class " + clazz + ", method " +
-					methodName + ", and parameters " + parametersString);
+		String parametersString = StringUtil.merge(parameters);
 
-			return null;
-		}
+		_log.error(
+			"No method found for class " + clazz + ", method " + methodName +
+				", and parameters " + parametersString);
+
+		return null;
 	}
 
 	@Override

@@ -64,6 +64,8 @@ public class ExportLayoutsAction extends PortletAction {
 			ActionResponse actionResponse)
 		throws Exception {
 
+		hideDefaultSuccessMessage(actionRequest);
+
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		try {

@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Node;
@@ -67,7 +68,7 @@ public class JournalFeedLocalServiceImpl
 		// Feed
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		feedId = feedId.trim().toUpperCase();
+		feedId = StringUtil.toUpperCase(feedId.trim());
 		Date now = new Date();
 
 		validate(
@@ -356,30 +357,28 @@ public class JournalFeedLocalServiceImpl
 
 			return true;
 		}
-		else {
-			try {
-				DDMStructure ddmStructure =
-					ddmStructureLocalService.getStructure(
-						groupId,
-						PortalUtil.getClassNameId(JournalArticle.class),
-						structureId);
 
-				Document document = SAXReaderUtil.read(ddmStructure.getXsd());
+		try {
+			DDMStructure ddmStructure =
+				ddmStructureLocalService.getStructure(
+					groupId, PortalUtil.getClassNameId(JournalArticle.class),
+					structureId);
 
-				contentField = HtmlUtil.escapeXPathAttribute(contentField);
+			Document document = SAXReaderUtil.read(ddmStructure.getXsd());
 
-				XPath xPathSelector = SAXReaderUtil.createXPath(
-					"//dynamic-element[@name="+ contentField + "]");
+			contentField = HtmlUtil.escapeXPathAttribute(contentField);
 
-				Node node = xPathSelector.selectSingleNode(document);
+			XPath xPathSelector = SAXReaderUtil.createXPath(
+				"//dynamic-element[@name="+ contentField + "]");
 
-				if (node != null) {
-					return true;
-				}
+			Node node = xPathSelector.selectSingleNode(document);
+
+			if (node != null) {
+				return true;
 			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
+		}
+		catch (Exception e) {
+			_log.error(e, e);
 		}
 
 		return false;
@@ -393,6 +392,7 @@ public class JournalFeedLocalServiceImpl
 
 		if (!autoFeedId) {
 			if (Validator.isNull(feedId) || Validator.isNumber(feedId) ||
+				(feedId.indexOf(CharPool.COMMA) != -1) ||
 				(feedId.indexOf(CharPool.SPACE) != -1)) {
 
 				throw new FeedIdException();

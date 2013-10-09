@@ -145,21 +145,24 @@ public abstract class MimeResponseImpl
 	@Override
 	public void setContentType(String contentType) {
 		if (Validator.isNull(contentType)) {
-			throw new IllegalArgumentException("Content type cannot be null");
+			throw new IllegalArgumentException("Content type is null");
 		}
 
 		String lifecycle = getLifecycle();
 		WindowState windowState = _portletRequestImpl.getWindowState();
 
-		if (contentType.startsWith(
-				_portletRequestImpl.getResponseContentType()) ||
-			lifecycle.equals(PortletRequest.RESOURCE_PHASE) ||
-			windowState.equals(LiferayWindowState.EXCLUSIVE)) {
+		if (!contentType.startsWith(
+				_portletRequestImpl.getResponseContentType()) &&
+			!lifecycle.equals(PortletRequest.RESOURCE_PHASE) &&
+			!windowState.equals(LiferayWindowState.EXCLUSIVE)) {
 
-			_contentType = contentType;
-
-			_response.setContentType(contentType);
+			throw new IllegalArgumentException(
+				contentType + " is an unsupported content type");
 		}
+
+		_contentType = contentType;
+
+		_response.setContentType(contentType);
 	}
 
 	@Override

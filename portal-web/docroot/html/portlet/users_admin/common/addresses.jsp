@@ -132,6 +132,7 @@ else {
 				{
 					contentBox: '#<portlet:namespace />addresses > fieldset',
 					fieldIndexes: '<portlet:namespace />addressesIndexes',
+					namespace: '<portlet:namespace />',
 					on: {
 						'clone': function(event) {
 							var row = event.row;
@@ -151,14 +152,14 @@ else {
 										selectDesc: 'nameCurrentValue',
 										selectSort: '<%= true %>',
 										selectId: 'countryId',
-										selectVal: ''
+										selectVal: '0'
 									},
 									{
 										select: '<portlet:namespace />addressRegionId' + guid,
 										selectData: Liferay.Address.getRegions,
 										selectDesc: 'name',
 										selectId: 'regionId',
-										selectVal: ''
+										selectVal: '0'
 									}
 								]
 							);

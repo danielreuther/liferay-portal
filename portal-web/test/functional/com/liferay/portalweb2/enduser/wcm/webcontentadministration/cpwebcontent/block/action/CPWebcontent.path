@@ -15,6 +15,16 @@
 </tr>
 <!---->
 <tr>
+	<td>PORTLET_TITLE</td>
+	<td>//h2[@id='cpPortletTitle']/span[@class='portlet-title-text']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NAVBAR_CONTAINER</td>
+	<td>//div[@class='navbar ']//div[@class='container']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SUCCESS_MESSAGE</td>
 	<td>//div[@class='alert alert-success']</td>
 	<td></td>
@@ -77,18 +87,8 @@
 	<td></td>
 </tr>
 <tr>
-	<td>TOOLBAR_ICON_VIEW_BUTTON</td>
-	<td>//button[@data-displaystyle='icon']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>TOOLBAR_DESCRIPTIVE_VIEW_BUTTON</td>
-	<td>//button[@data-displaystyle='descriptive']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>TOOLBAR_LIST_VIEW_BUTTON</td>
-	<td>//button[@data-displaystyle='list']</td>
+	<td>TOOLBAR_DISPLAY_STYLE_BUTTON</td>
+	<td>//div[@id='_15_displayStyleButtons']/div/a</td>
 	<td></td>
 </tr>
 <tr>
@@ -177,6 +177,27 @@
 <tr>
 	<td>MANAGE_MENULIST_FEEDS</td>
 	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Feeds')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--DISPLAY_STYLE_MENULIST-->
+<tr>
+	<td>DISPLAY_STYLE_MENULIST_ICON</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Icon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_STYLE_MENULIST_DESCRIPTIVE</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Descriptive')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DISPLAY_STYLE_MENULIST_LIST</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'List')]</td>
 	<td></td>
 </tr>
 <tr>

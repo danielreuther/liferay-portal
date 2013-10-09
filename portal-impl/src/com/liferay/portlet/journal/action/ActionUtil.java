@@ -33,7 +33,6 @@ import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.dynamicdatamapping.NoSuchStructureException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
-import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.storage.Field;
@@ -178,16 +177,18 @@ public class ActionUtil {
 		long classPK = ParamUtil.getLong(request, "classPK");
 		String articleId = ParamUtil.getString(request, "articleId");
 		String structureId = ParamUtil.getString(request, "structureId");
+		int status = ParamUtil.getInteger(
+			request, "status", WorkflowConstants.STATUS_ANY);
 
 		JournalArticle article = null;
 
 		if (cmd.equals(Constants.ADD) && (resourcePrimKey != 0)) {
 			article = JournalArticleLocalServiceUtil.getLatestArticle(
-				resourcePrimKey, WorkflowConstants.STATUS_ANY, false);
+				resourcePrimKey, status, false);
 		}
 		else if (!cmd.equals(Constants.ADD) && Validator.isNotNull(articleId)) {
 			article = JournalArticleServiceUtil.getLatestArticle(
-				groupId, articleId, WorkflowConstants.STATUS_ANY);
+				groupId, articleId, status);
 		}
 		else if ((classNameId > 0) &&
 				 (classPK > JournalArticleConstants.CLASSNAME_ID_DEFAULT)) {
@@ -288,13 +289,9 @@ public class ActionUtil {
 	}
 
 	public static Object[] getContentAndImages(
-			long groupId, String structureId, Locale locale,
+			DDMStructure ddmStructure, Locale locale,
 			ServiceContext serviceContext)
 		throws Exception {
-
-		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.getStructure(
-			groupId, PortalUtil.getClassNameId(JournalArticle.class),
-			structureId, true);
 
 		Fields fields = DDMUtil.getFields(
 			ddmStructure.getStructureId(), serviceContext);

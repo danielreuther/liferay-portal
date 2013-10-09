@@ -68,14 +68,14 @@ int entryEnd = ParamUtil.getInteger(request, "entryEnd", entriesPerPage);
 
 int total = 0;
 
-boolean ajaxRequest = ParamUtil.getBoolean(request, "ajax");
+boolean ajax = ParamUtil.getBoolean(request, "ajax");
 
 boolean showRepositoryTabs = ParamUtil.getBoolean(request, "showRepositoryTabs");
 
 boolean showSearchInfo = ParamUtil.getBoolean(request, "showSearchInfo");
 
 if (searchType == DLSearchConstants.FRAGMENT) {
-	if (ajaxRequest) {
+	if (ajax) {
 		showRepositoryTabs = false;
 
 		showSearchInfo = false;
@@ -90,7 +90,7 @@ if (searchType == DLSearchConstants.FRAGMENT) {
 		}
 	}
 }
-else if ((searchType == DLSearchConstants.SINGLE) && !ajaxRequest) {
+else if ((searchType == DLSearchConstants.SINGLE) && !ajax) {
 	showSearchInfo = true;
 
 	if (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
@@ -214,7 +214,7 @@ else if ((searchType == DLSearchConstants.SINGLE) && !ajaxRequest) {
 
 					String className = searchResult.getClassName();
 
-					if (className.equals(DLFileEntry.class.getName())) {
+					if (className.equals(DLFileEntry.class.getName()) || FileEntry.class.isAssignableFrom(Class.forName(className))) {
 						fileEntry = DLAppLocalServiceUtil.getFileEntry(searchResult.getClassPK());
 					}
 					else if (className.equals(DLFolder.class.getName())) {

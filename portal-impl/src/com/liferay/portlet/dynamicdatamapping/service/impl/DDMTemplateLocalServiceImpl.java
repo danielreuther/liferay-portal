@@ -178,7 +178,7 @@ public class DDMTemplateLocalServiceImpl
 			templateKey = String.valueOf(counterLocalService.increment());
 		}
 		else {
-			templateKey = templateKey.trim().toUpperCase();
+			templateKey = StringUtil.toUpperCase(templateKey.trim());
 		}
 
 		script = formatScript(type, language, script);
@@ -487,7 +487,7 @@ public class DDMTemplateLocalServiceImpl
 			long groupId, long classNameId, String templateKey)
 		throws SystemException {
 
-		templateKey = templateKey.trim().toUpperCase();
+		templateKey = StringUtil.toUpperCase(templateKey.trim());
 
 		return ddmTemplatePersistence.fetchByG_C_T(
 			groupId, classNameId, templateKey);
@@ -520,7 +520,7 @@ public class DDMTemplateLocalServiceImpl
 			boolean includeGlobalTemplates)
 		throws PortalException, SystemException {
 
-		templateKey = templateKey.trim().toUpperCase();
+		templateKey = StringUtil.toUpperCase(templateKey.trim());
 
 		DDMTemplate template = ddmTemplatePersistence.fetchByG_C_T(
 			groupId, classNameId, templateKey);
@@ -569,7 +569,7 @@ public class DDMTemplateLocalServiceImpl
 			long groupId, long classNameId, String templateKey)
 		throws PortalException, SystemException {
 
-		templateKey = templateKey.trim().toUpperCase();
+		templateKey = StringUtil.toUpperCase(templateKey.trim());
 
 		return ddmTemplatePersistence.findByG_C_T(
 			groupId, classNameId, templateKey);
@@ -601,7 +601,7 @@ public class DDMTemplateLocalServiceImpl
 			boolean includeGlobalTemplates)
 		throws PortalException, SystemException {
 
-		templateKey = templateKey.trim().toUpperCase();
+		templateKey = StringUtil.toUpperCase(templateKey.trim());
 
 		DDMTemplate template = ddmTemplatePersistence.fetchByG_C_T(
 			groupId, classNameId, templateKey);
@@ -843,6 +843,25 @@ public class DDMTemplateLocalServiceImpl
 		throws SystemException {
 
 		return ddmTemplatePersistence.countByG_C(groupId, classNameId);
+	}
+
+	/**
+	 * Returns the number of templates matching the group, class name ID, and
+	 * class PK.
+	 *
+	 * @param  groupId the primary key of the group
+	 * @param  classNameId the primary key of the class name for the template's
+	 *         related model
+	 * @param  classPK the primary key of the template's related entity
+	 * @return the number of matching templates
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public int getTemplatesCount(long groupId, long classNameId, long classPK)
+		throws SystemException {
+
+		return ddmTemplatePersistence.countByG_C_C(
+			groupId, classNameId, classPK);
 	}
 
 	/**
@@ -1323,6 +1342,7 @@ public class DDMTemplateLocalServiceImpl
 			language.equals(TemplateConstants.LANG_TYPE_XSL)) {
 
 			try {
+				script = DDMXMLUtil.validateXML(script);
 				script = DDMXMLUtil.formatXML(script);
 			}
 			catch (Exception e) {
@@ -1354,7 +1374,7 @@ public class DDMTemplateLocalServiceImpl
 			String smallImageURL, File smallImageFile, byte[] smallImageBytes)
 		throws PortalException, SystemException {
 
-		templateKey = templateKey.trim().toUpperCase();
+		templateKey = StringUtil.toUpperCase(templateKey.trim());
 
 		DDMTemplate template = ddmTemplatePersistence.fetchByG_C_T(
 			groupId, classNameId, templateKey);

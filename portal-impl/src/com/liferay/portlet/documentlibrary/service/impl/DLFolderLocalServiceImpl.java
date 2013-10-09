@@ -100,6 +100,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		dlFolder.setRepositoryId(repositoryId);
 		dlFolder.setMountPoint(mountPoint);
 		dlFolder.setParentFolderId(parentFolderId);
+		dlFolder.setTreePath(dlFolder.buildTreePath());
 		dlFolder.setName(name);
 		dlFolder.setDescription(description);
 		dlFolder.setLastPostDate(now);
@@ -179,6 +180,8 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		dlFileEntryLocalService.deleteFileEntries(
 			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		dlFileEntryTypeLocalService.deleteFileEntryTypes(groupId);
 
 		dlFileShortcutLocalService.deleteFileShortcuts(
 			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
@@ -636,6 +639,22 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	}
 
 	@Override
+	public int getFoldersCount(
+			long groupId, long parentFolderId, int status,
+			boolean includeMountfolders)
+		throws SystemException {
+
+		if (includeMountfolders) {
+			return dlFolderPersistence.countByG_P_H_S(
+				groupId, parentFolderId, false, status);
+		}
+		else {
+			return dlFolderPersistence.countByG_M_P_H_S(
+				groupId, false, parentFolderId, false, status);
+		}
+	}
+
+	@Override
 	public DLFolder getMountFolder(long repositoryId)
 		throws PortalException, SystemException {
 
@@ -743,6 +762,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 			dlFolder.setModifiedDate(serviceContext.getModifiedDate(null));
 			dlFolder.setParentFolderId(parentFolderId);
+			dlFolder.setTreePath(dlFolder.buildTreePath());
 			dlFolder.setExpandoBridgeAttributes(serviceContext);
 
 			dlFolderPersistence.update(dlFolder);
@@ -758,6 +778,24 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 				unlockFolder(folderId, lock.getUuid());
 			}
+		}
+	}
+
+	@Override
+	public void rebuildTree(long companyId)
+		throws PortalException, SystemException {
+
+		List<DLFolder> dlFolders = dlFolderPersistence.findByC_NotS(
+			companyId, WorkflowConstants.STATUS_IN_TRASH);
+
+		for (DLFolder dlFolder : dlFolders) {
+			if (dlFolder.isInTrashContainer()) {
+				continue;
+			}
+
+			dlFolder.setTreePath(dlFolder.buildTreePath());
+
+			dlFolderPersistence.update(dlFolder);
 		}
 	}
 
@@ -851,8 +889,14 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			}
 
 			for (long fileEntryTypeId : fileEntryTypeIds) {
-				String workflowDefinition = ParamUtil.getString(
-					serviceContext, "workflowDefinition" + fileEntryTypeId);
+				String workflowDefinition = StringPool.BLANK;
+
+				if (overrideFileEntryTypes ||
+					(folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
+
+					workflowDefinition = ParamUtil.getString(
+						serviceContext, "workflowDefinition" + fileEntryTypeId);
+				}
 
 				workflowDefinitionOVPs.add(
 					new ObjectValuePair<Long, String>(
@@ -927,6 +971,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 			dlFolder.setModifiedDate(serviceContext.getModifiedDate(null));
 			dlFolder.setParentFolderId(parentFolderId);
+			dlFolder.setTreePath(dlFolder.buildTreePath());
 			dlFolder.setName(name);
 			dlFolder.setDescription(description);
 			dlFolder.setExpandoBridgeAttributes(serviceContext);
@@ -1028,7 +1073,8 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 			trashEntryLocalService.addTrashEntry(
 				userId, dlFolder.getGroupId(), DLFolderConstants.getClassName(),
-				dlFolder.getFolderId(), WorkflowConstants.STATUS_APPROVED, null,
+				dlFolder.getFolderId(), dlFolder.getUuid(), null,
+				WorkflowConstants.STATUS_APPROVED, null,
 				typeSettingsProperties);
 		}
 		else {
@@ -1104,27 +1150,26 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		if (dlFolder.getFolderId() == parentFolderId) {
 			return dlFolder.getParentFolderId();
 		}
-		else {
-			DLFolder parentDLFolder = dlFolderPersistence.fetchByPrimaryKey(
-				parentFolderId);
 
-			if ((parentDLFolder == null) ||
-				(dlFolder.getGroupId() != parentDLFolder.getGroupId())) {
+		DLFolder parentDLFolder = dlFolderPersistence.fetchByPrimaryKey(
+			parentFolderId);
 
-				return dlFolder.getParentFolderId();
-			}
+		if ((parentDLFolder == null) ||
+			(dlFolder.getGroupId() != parentDLFolder.getGroupId())) {
 
-			List<Long> subfolderIds = new ArrayList<Long>();
-
-			getSubfolderIds(
-				subfolderIds, dlFolder.getGroupId(), dlFolder.getFolderId());
-
-			if (subfolderIds.contains(parentFolderId)) {
-				return dlFolder.getParentFolderId();
-			}
-
-			return parentFolderId;
+			return dlFolder.getParentFolderId();
 		}
+
+		List<Long> subfolderIds = new ArrayList<Long>();
+
+		getSubfolderIds(
+			subfolderIds, dlFolder.getGroupId(), dlFolder.getFolderId());
+
+		if (subfolderIds.contains(parentFolderId)) {
+			return dlFolder.getParentFolderId();
+		}
+
+		return parentFolderId;
 	}
 
 	protected long getParentFolderId(long groupId, long parentFolderId)

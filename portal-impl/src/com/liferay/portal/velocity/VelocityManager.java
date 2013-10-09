@@ -29,7 +29,6 @@ import com.liferay.portal.util.PropsValues;
 import java.util.Map;
 
 import org.apache.commons.collections.ExtendedProperties;
-import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.util.introspection.SecureUberspector;
@@ -151,13 +150,11 @@ public class VelocityManager extends BaseTemplateManager {
 	protected Template doGetTemplate(
 		TemplateResource templateResource,
 		TemplateResource errorTemplateResource, boolean restricted,
-		Map<String, Object> helperUtilities) {
-
-		VelocityContext velocityContext = getVelocityContext(helperUtilities);
+		Map<String, Object> helperUtilities, boolean privileged) {
 
 		Template template = new VelocityTemplate(
-			templateResource, errorTemplateResource, velocityContext,
-			_velocityEngine, templateContextHelper);
+			templateResource, errorTemplateResource, helperUtilities,
+			_velocityEngine, templateContextHelper, privileged);
 
 		if (restricted) {
 			template = new RestrictedTemplate(
@@ -165,18 +162,6 @@ public class VelocityManager extends BaseTemplateManager {
 		}
 
 		return template;
-	}
-
-	protected VelocityContext getVelocityContext(
-		Map<String, Object> helperUtilities) {
-
-		VelocityContext velocityContext = new VelocityContext();
-
-		for (Map.Entry<String, Object> entry : helperUtilities.entrySet()) {
-			velocityContext.put(entry.getKey(), entry.getValue());
-		}
-
-		return velocityContext;
 	}
 
 	private VelocityEngine _velocityEngine;

@@ -94,11 +94,9 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 			long companyId, long groupId, String name)
 		throws Exception {
 
-		// checkGuest is irrelevant for the guest role, so it is assumed true
-
 		ResourceBlockIdsBag resourceBlockIdsBag =
 			PermissionCacheUtil.getResourceBlockIdsBag(
-				companyId, groupId, defaultUserId, name, true);
+				companyId, groupId, defaultUserId, name);
 
 		if (resourceBlockIdsBag != null) {
 			return resourceBlockIdsBag;
@@ -114,8 +112,7 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 					getCompanyId(), groupId, name, roleIds);
 
 			PermissionCacheUtil.putResourceBlockIdsBag(
-				companyId, groupId, defaultUserId, name, true,
-				resourceBlockIdsBag);
+				companyId, groupId, defaultUserId, name, resourceBlockIdsBag);
 
 			return resourceBlockIdsBag;
 		}
@@ -125,8 +122,7 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 			}
 
 			PermissionCacheUtil.putResourceBlockIdsBag(
-				companyId, defaultUserId, groupId, name, true,
-				resourceBlockIdsBag);
+				companyId, defaultUserId, groupId, name, resourceBlockIdsBag);
 		}
 	}
 
@@ -205,12 +201,9 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 			long companyId, long groupId, String name)
 		throws SystemException {
 
-		// checkGuest is irrelevant for the owner role, so it is assumed true
-
 		ResourceBlockIdsBag resourceBlockIdsBag =
 			PermissionCacheUtil.getResourceBlockIdsBag(
-				companyId, groupId, ResourceBlockConstants.OWNER_USER_ID, name,
-				true);
+				companyId, groupId, ResourceBlockConstants.OWNER_USER_ID, name);
 
 		if (resourceBlockIdsBag != null) {
 			return resourceBlockIdsBag;
@@ -225,7 +218,7 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 
 			PermissionCacheUtil.putResourceBlockIdsBag(
 				companyId, groupId, ResourceBlockConstants.OWNER_USER_ID, name,
-				true, resourceBlockIdsBag);
+				resourceBlockIdsBag);
 
 			return resourceBlockIdsBag;
 		}
@@ -236,7 +229,7 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 
 			PermissionCacheUtil.putResourceBlockIdsBag(
 				companyId, ResourceBlockConstants.OWNER_USER_ID, groupId, name,
-				true, resourceBlockIdsBag);
+				resourceBlockIdsBag);
 		}
 	}
 
@@ -264,7 +257,7 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 
 		ResourceBlockIdsBag resourceBlockIdsBag =
 			PermissionCacheUtil.getResourceBlockIdsBag(
-				companyId, groupId, userId, name, checkGuest);
+				companyId, groupId, userId, name);
 
 		if (resourceBlockIdsBag != null) {
 			return resourceBlockIdsBag;
@@ -278,8 +271,7 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 					getCompanyId(), groupId, name, roleIds);
 
 			PermissionCacheUtil.putResourceBlockIdsBag(
-				companyId, groupId, userId, name, checkGuest,
-				resourceBlockIdsBag);
+				companyId, groupId, userId, name, resourceBlockIdsBag);
 
 			return resourceBlockIdsBag;
 		}
@@ -289,8 +281,7 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 			}
 
 			PermissionCacheUtil.putResourceBlockIdsBag(
-				companyId, userId, groupId, name, checkGuest,
-				resourceBlockIdsBag);
+				companyId, userId, groupId, name, resourceBlockIdsBag);
 		}
 	}
 
@@ -539,13 +530,12 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 
 		Group group = null;
 
-		// If the current group is a staging group, check the live group. If the
-		// current group is a scope group for a layout, check the original
-		// group.
-
 		try {
 			if (groupId > 0) {
 				group = GroupLocalServiceUtil.getGroup(groupId);
+
+				// If the group is a personal site, check the "User Personal
+				// Site" group.
 
 				if (group.isUser() && (group.getClassPK() == getUserId())) {
 					group = GroupLocalServiceUtil.getGroup(
@@ -553,6 +543,9 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 
 					groupId = group.getGroupId();
 				}
+
+				// If the group is a scope group for a layout, check the
+				// original group.
 
 				if (group.isLayout() &&
 					!ResourceBlockLocalServiceUtil.isSupported(name)) {
@@ -564,6 +557,8 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 
 					group = GroupLocalServiceUtil.getGroup(groupId);
 				}
+
+				// If the group is a staging group, check the live group.
 
 				if (group.isStagingGroup()) {
 					if (primKey.equals(String.valueOf(groupId))) {
@@ -580,8 +575,7 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 		}
 
 		Boolean value = PermissionCacheUtil.getPermission(
-			user.getUserId(), signedIn, checkGuest, groupId, name, primKey,
-			actionId);
+			user.getUserId(), signedIn, groupId, name, primKey, actionId);
 
 		if (value != null) {
 			return value.booleanValue();
@@ -604,8 +598,8 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 			}
 
 			PermissionCacheUtil.putPermission(
-				user.getUserId(), signedIn, checkGuest, groupId, name, primKey,
-				actionId, value);
+				user.getUserId(), signedIn, groupId, name, primKey, actionId,
+				value);
 		}
 
 		return value.booleanValue();
@@ -994,6 +988,12 @@ public class AdvancedPermissionChecker extends BasePermissionChecker {
 		}
 
 		long companyId = user.getCompanyId();
+
+		if (groupId > 0) {
+			Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+			companyId = group.getCompanyId();
+		}
 
 		boolean hasLayoutManagerPermission = true;
 

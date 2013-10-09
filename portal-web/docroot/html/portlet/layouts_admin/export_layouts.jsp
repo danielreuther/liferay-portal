@@ -56,7 +56,7 @@ if (endDateTime > 0) {
 	endDate = new Date(endDateTime);
 }
 
-String treeId = "layoutsExportTree";
+String treeId = "layoutsExportTree" + liveGroupId + privateLayout;
 
 long[] selectedLayoutIds = GetterUtil.getLongValues(StringUtil.split(SessionTreeJSClicks.getOpenNodes(request, treeId + "SelectedNode"), ','));
 
@@ -208,7 +208,7 @@ portletURL.setParameter("rootNodeName", rootNodeName);
 																<liferay-util:include page="/html/portlet/layouts_admin/render_controls.jsp" />
 															</ul>
 														</aui:fieldset>
-													 </div>
+													</div>
 
 													<ul class="hide" id="<portlet:namespace />showChangeConfiguration_<%= portlet.getRootPortletId() %>">
 														<li>
@@ -289,6 +289,7 @@ portletURL.setParameter("rootNodeName", rootNodeName);
 																			firstDayOfWeek="<%= yesterday.getFirstDayOfWeek() - 1 %>"
 																			monthParam="startDateMonth"
 																			monthValue="<%= yesterday.get(Calendar.MONTH) %>"
+																			name="startDate"
 																			yearParam="startDateYear"
 																			yearValue="<%= yesterday.get(Calendar.YEAR) %>"
 																		/>
@@ -298,11 +299,14 @@ portletURL.setParameter("rootNodeName", rootNodeName);
 																		<liferay-ui:input-time
 																			amPmParam='<%= "startDateAmPm" %>'
 																			amPmValue="<%= yesterday.get(Calendar.AM_PM) %>"
+																			dateParam="startDateTime"
+																			dateValue="<%= yesterday.getTime() %>"
 																			disabled="<%= false %>"
 																			hourParam='<%= "startDateHour" %>'
 																			hourValue="<%= yesterday.get(Calendar.HOUR) %>"
 																			minuteParam='<%= "startDateMinute" %>'
 																			minuteValue="<%= yesterday.get(Calendar.MINUTE) %>"
+																			name="startTime"
 																		/>
 																	</aui:fieldset>
 																</li>
@@ -316,6 +320,7 @@ portletURL.setParameter("rootNodeName", rootNodeName);
 																			firstDayOfWeek="<%= today.getFirstDayOfWeek() - 1 %>"
 																			monthParam="endDateMonth"
 																			monthValue="<%= today.get(Calendar.MONTH) %>"
+																			name="endDate"
 																			yearParam="endDateYear"
 																			yearValue="<%= today.get(Calendar.YEAR) %>"
 																		/>
@@ -325,11 +330,14 @@ portletURL.setParameter("rootNodeName", rootNodeName);
 																		<liferay-ui:input-time
 																			amPmParam='<%= "endDateAmPm" %>'
 																			amPmValue="<%= today.get(Calendar.AM_PM) %>"
+																			dateParam="startDateTime"
+																			dateValue="<%= today.getTime() %>"
 																			disabled="<%= false %>"
 																			hourParam='<%= "endDateHour" %>'
 																			hourValue="<%= today.get(Calendar.HOUR) %>"
 																			minuteParam='<%= "endDateMinute" %>'
 																			minuteValue="<%= today.get(Calendar.MINUTE) %>"
+																			name="endTime"
 																		/>
 																	</aui:fieldset>
 																</li>
@@ -554,6 +562,8 @@ portletURL.setParameter("rootNodeName", rootNodeName);
 
 				<aui:button-row>
 					<aui:button type="submit" value="export" />
+
+					<aui:button href="<%= currentURL %>" type="cancel" />
 				</aui:button-row>
 			</aui:form>
 		</div>

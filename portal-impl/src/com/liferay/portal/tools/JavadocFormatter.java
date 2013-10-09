@@ -560,10 +560,7 @@ public class JavadocFormatter {
 		for (DocletTag paramDocletTag : paramDocletTags) {
 			String curValue = paramDocletTag.getValue();
 
-			if (!curValue.startsWith(name)) {
-				continue;
-			}
-			else {
+			if (curValue.equals(name) || curValue.startsWith(name + " ")) {
 				value = curValue;
 
 				break;
@@ -1516,16 +1513,16 @@ public class JavadocFormatter {
 			if (samePackage) {
 				return !ancestorJavaMethod.isPrivate();
 			}
-			else {
-				if (ancestorJavaMethod.isProtected() ||
-					ancestorJavaMethod.isPublic()) {
 
-					return true;
-				}
-				else {
-					return false;
-				}
+			if (ancestorJavaMethod.isProtected() ||
+				ancestorJavaMethod.isPublic()) {
+
+				return true;
 			}
+			else {
+				return false;
+			}
+
 		}
 
 		return false;

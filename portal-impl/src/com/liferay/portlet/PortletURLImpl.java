@@ -851,7 +851,8 @@ public class PortletURLImpl
 
 					if (_secure) {
 						_layoutFriendlyURL = HttpUtil.protocolize(
-							_layoutFriendlyURL, true);
+							_layoutFriendlyURL,
+							PropsValues.WEB_SERVER_HTTPS_PORT, true);
 					}
 				}
 			}
@@ -1379,13 +1380,12 @@ public class PortletURLImpl
 		if (key == null) {
 			return HttpUtil.encodeURL(value);
 		}
-		else {
-			try {
-				return HttpUtil.encodeURL(Encryptor.encrypt(key, value));
-			}
-			catch (EncryptorException ee) {
-				return value;
-			}
+
+		try {
+			return HttpUtil.encodeURL(Encryptor.encrypt(key, value));
+		}
+		catch (EncryptorException ee) {
+			return value;
 		}
 	}
 

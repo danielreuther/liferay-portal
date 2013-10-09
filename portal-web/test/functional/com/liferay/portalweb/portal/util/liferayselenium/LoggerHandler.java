@@ -55,9 +55,13 @@ public class LoggerHandler implements InvocationHandler {
 			return method.invoke(_liferaySelenium, arguments);
 		}
 		catch (InvocationTargetException ite) {
+			System.out.println(ite);
+
+			ite.printStackTrace();
+
 			Throwable throwable = ite.getTargetException();
 
-			_logger.logError(method, arguments, throwable.getMessage());
+			_logger.logError(method, arguments, throwable);
 
 			throw throwable;
 		}

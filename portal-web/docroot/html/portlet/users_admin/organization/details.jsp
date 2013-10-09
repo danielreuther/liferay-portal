@@ -95,7 +95,7 @@ User selUser = (User)request.getAttribute("user.selUser");
 		</c:when>
 		<c:otherwise>
 			<aui:field-wrapper label="type">
-				<liferay-ui:message key="<%= organization.getType() %>" />
+				<liferay-ui:input-resource url="<%= LanguageUtil.get(pageContext, organization.getType()) %>" />
 			</aui:field-wrapper>
 
 			<aui:input name="type" type="hidden" value="<%= organization.getType() %>" />
@@ -112,7 +112,7 @@ User selUser = (User)request.getAttribute("user.selUser");
 
 	<c:if test="<%= organization != null %>">
 		<aui:field-wrapper label="site-id">
-			<%= groupId %>
+			<liferay-ui:input-resource url="<%= String.valueOf(groupId) %>" />
 		</aui:field-wrapper>
 	</c:if>
 </aui:fieldset>
@@ -235,9 +235,10 @@ if (parentOrganization != null) {
 
 <liferay-ui:icon
 	cssClass="modify-link"
+	iconClass="icon-search"
 	id="selectOrganizationLink"
-	image="add"
 	label="<%= true %>"
+	linkCssClass="btn"
 	message="select"
 	method="get"
 	url="javascript:;"

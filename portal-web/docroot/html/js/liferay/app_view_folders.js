@@ -1,11 +1,12 @@
 AUI.add(
 	'liferay-app-view-folders',
 	function(A) {
+		var ANode = A.Node;
 		var AObject = A.Object;
 		var History = Liferay.HistoryManager;
 		var Lang = A.Lang;
 
-		var formatSelectorNS = A.Node.formatSelectorNS;
+		var formatSelectorNS = ANode.formatSelectorNS;
 
 		var owns = AObject.owns;
 
@@ -141,7 +142,7 @@ AUI.add(
 
 						instance._displayStyleToolbar = instance.get('displayStyleToolbar');
 
-						instance._portletMessageContainer = A.Node.create(TPL_MESSAGE_RESPONSE);
+						instance._portletMessageContainer = ANode.create(TPL_MESSAGE_RESPONSE);
 
 						instance._entriesContainer = instance.byId('entriesContainer');
 
@@ -444,7 +445,7 @@ AUI.add(
 					_parseContent: function(data) {
 						var instance = this;
 
-						var tmpNode = A.Node.create('<div></div>');
+						var tmpNode = ANode.create('<div></div>');
 
 						tmpNode.plug(A.Plugin.ParseContent);
 
@@ -527,22 +528,12 @@ AUI.add(
 						if (breadcrumb) {
 							var breadcrumbContainer;
 
-							var journalBreadcrumb = breadcrumb.one('.portlet-breadcrumb ul');
+							var portletBreadcrumb = breadcrumb.one('.portlet-breadcrumb');
 
-							if (journalBreadcrumb) {
+							if (portletBreadcrumb) {
 								breadcrumbContainer = instance.byId('breadcrumbContainer');
 
-								breadcrumbContainer.setContent(journalBreadcrumb);
-							}
-
-							var portalBreadcrumb = breadcrumb.one('.portal-breadcrumb ul');
-
-							if (portalBreadcrumb) {
-								breadcrumbContainer = A.one('#breadcrumbs ul');
-
-								if (breadcrumbContainer) {
-									breadcrumbContainer.setContent(portalBreadcrumb.html());
-								}
+								breadcrumbContainer.setContent(portletBreadcrumb.html());
 							}
 						}
 					},
@@ -553,9 +544,27 @@ AUI.add(
 						var addButton = instance.one('#addButton', content);
 
 						if (addButton) {
+							var toolbarContainer = instance.byId('toolbarContainer');
+
 							var addButtonContainer = instance.byId('addButtonContainer');
 
-							addButtonContainer.replace(addButton.html());
+							if (addButtonContainer) {
+								var refNode = addButtonContainer.next();
+
+								addButtonContainer.remove();
+
+								toolbarContainer.insertBefore(addButton.html(), refNode);
+							}
+							else {
+								var actionsButtonContainer = instance.one('#actionsButtonContainer', toolbarContainer);
+
+								if (actionsButtonContainer) {
+									toolbarContainer.insertBefore(addButton.html(), actionsButtonContainer.next());
+								}
+								else {
+									toolbarContainer.prepend(addButton.html());
+								}
+							}
 						}
 
 						var displayStyleButtons = instance.one('#displayStyleButtons', content);
@@ -594,7 +603,9 @@ AUI.add(
 
 						var addButtonContainer = instance.byId('addButtonContainer');
 
-						addButtonContainer.show();
+						if (addButtonContainer) {
+							addButtonContainer.show();
+						}
 
 						var sortButtonContainer = instance.byId('sortButtonContainer');
 
@@ -630,7 +641,7 @@ AUI.add(
 					},
 
 					_validateFolderContainer: function(value) {
-						return (Lang.isString(value) || value instanceof A.Node);
+						return (Lang.isString(value) || value instanceof ANode);
 					},
 
 					_valueFolderContainer: function() {

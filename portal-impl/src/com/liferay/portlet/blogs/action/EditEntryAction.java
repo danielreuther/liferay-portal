@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -107,12 +106,10 @@ public class EditEntryAction extends PortletAction {
 				oldUrlTitle = ((String)returnValue[1]);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteEntries(
-					(LiferayPortletConfig)portletConfig, actionRequest, false);
+				deleteEntries(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteEntries(
-					(LiferayPortletConfig)portletConfig, actionRequest, true);
+				deleteEntries(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.SUBSCRIBE)) {
 				subscribe(actionRequest);
@@ -294,7 +291,6 @@ public class EditEntryAction extends PortletAction {
 	}
 
 	protected void deleteEntries(
-			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
@@ -344,10 +340,10 @@ public class EditEntryAction extends PortletAction {
 
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
 
-			hideDefaultSuccessMessage(liferayPortletConfig, actionRequest);
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 
@@ -420,28 +416,30 @@ public class EditEntryAction extends PortletAction {
 
 		long entryId = ParamUtil.getLong(actionRequest, "entryId");
 
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
+
 		String content = ParamUtil.getString(actionRequest, "content");
 
-		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
+		Calendar displayDateCal = CalendarFactoryUtil.getCalendar();
+
+		displayDateCal.setTime(entry.getDisplayDate());
+
+		int displayDateMonth = displayDateCal.get(Calendar.MONTH);
+		int displayDateDay = displayDateCal.get(Calendar.DATE);
+		int displayDateYear = displayDateCal.get(Calendar.YEAR);
+		int displayDateHour = displayDateCal.get(Calendar.HOUR);
+		int displayDateMinute = displayDateCal.get(Calendar.MINUTE);
+
+		if (displayDateCal.get(Calendar.AM_PM) == Calendar.PM) {
+			displayDateHour += 12;
+		}
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			actionRequest);
 
+		serviceContext.setCommand(Constants.UPDATE);
+
 		try {
-			Calendar displayDateCal = CalendarFactoryUtil.getCalendar();
-
-			displayDateCal.setTime(entry.getDisplayDate());
-
-			int displayDateMonth = displayDateCal.get(Calendar.MONTH);
-			int displayDateDay = displayDateCal.get(Calendar.DATE);
-			int displayDateYear = displayDateCal.get(Calendar.YEAR);
-			int displayDateHour = displayDateCal.get(Calendar.HOUR);
-			int displayDateMinute = displayDateCal.get(Calendar.MINUTE);
-
-			if (displayDateCal.get(Calendar.AM_PM) == Calendar.PM) {
-				displayDateHour += 12;
-			}
-
 			BlogsEntryServiceUtil.updateEntry(
 				entryId, entry.getTitle(), entry.getDescription(), content,
 				displayDateMonth, displayDateDay, displayDateYear,
@@ -516,18 +514,13 @@ public class EditEntryAction extends PortletAction {
 					actionRequest, "smallImageURL");
 
 				if (smallImage && Validator.isNull(smallImageURL)) {
-					boolean attachments = ParamUtil.getBoolean(
-						actionRequest, "attachments");
+					UploadPortletRequest uploadPortletRequest =
+						PortalUtil.getUploadPortletRequest(actionRequest);
 
-					if (attachments) {
-						UploadPortletRequest uploadPortletRequest =
-							PortalUtil.getUploadPortletRequest(actionRequest);
-
-						smallImageFileName = uploadPortletRequest.getFileName(
-							"smallFile");
-						smallImageInputStream =
-							uploadPortletRequest.getFileAsStream("smallFile");
-					}
+					smallImageFileName = uploadPortletRequest.getFileName(
+						"smallFile");
+					smallImageInputStream =
+						uploadPortletRequest.getFileAsStream("smallFile");
 				}
 			}
 

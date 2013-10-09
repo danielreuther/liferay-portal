@@ -73,11 +73,14 @@ import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.LayoutPrototype;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.LayoutSetPrototype;
+import com.liferay.portal.model.LayoutTemplate;
 import com.liferay.portal.model.LayoutTypePortlet;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.Portlet;
+import com.liferay.portal.model.ResourceAction;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.ResourcePermission;
+import com.liferay.portal.model.ResourceTypePermission;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.User;
@@ -293,7 +296,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 		if (staging) {
 			name = name.concat(" (Staging)");
-			friendlyURL = friendlyURL.concat("-staging");
+			friendlyURL = getFriendlyURL(friendlyURL.concat("-staging"));
 		}
 
 		if (parentGroupId == GroupConstants.DEFAULT_PARENT_GROUP_ID) {
@@ -1227,11 +1230,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 			name = organization.getName();
 
-			Group organizationGroup = organization.getGroup();
-
-			if (organizationGroup.isStaged() && group.isStagingGroup()) {
-				name = name + " (" + LanguageUtil.get(locale, "staging") + ")";
-			}
+			group = organization.getGroup();
 		}
 		else if (group.isUser()) {
 			long userId = group.getClassPK();
@@ -1258,6 +1257,14 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			Account account = company.getAccount();
 
 			name = account.getName();
+		}
+
+		if (group.isStaged() && !group.isStagedRemotely() &&
+			group.isStagingGroup()) {
+
+			Group liveGroup = group.getLiveGroup();
+
+			name = liveGroup.getDescriptiveName(locale);
 		}
 
 		return name;
@@ -3540,10 +3547,12 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 		layoutTypePortlet.setLayoutTemplateId(
 			0, PropsValues.DEFAULT_GUEST_PUBLIC_LAYOUT_TEMPLATE_ID, false);
 
-		for (int i = 0; i < 10; i++) {
-			String columnId = "column-" + i;
-			String portletIds = PropsUtil.get(
-				PropsKeys.DEFAULT_GUEST_PUBLIC_LAYOUT_COLUMN + i);
+		LayoutTemplate layoutTemplate = layoutTypePortlet.getLayoutTemplate();
+
+		for (String columnId : layoutTemplate.getColumns()) {
+			String keyPrefix = PropsKeys.DEFAULT_GUEST_PUBLIC_LAYOUT_PREFIX;
+
+			String portletIds = PropsUtil.get(keyPrefix.concat(columnId));
 
 			layoutTypePortlet.addPortletIds(
 				0, StringUtil.split(portletIds), columnId, false);
@@ -3858,13 +3867,72 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			}
 		}
 
+		// Join by role permissions
+
+		List<?> rolePermissions = (List<?>)params.remove("rolePermissions");
+
+		if (rolePermissions != null) {
+			String resourceName = (String)rolePermissions.get(0);
+			Integer resourceScope = (Integer)rolePermissions.get(1);
+			String resourceActionId = (String)rolePermissions.get(2);
+			Long resourceRoleId = (Long)rolePermissions.get(3);
+
+			ResourceAction resourceAction =
+				resourceActionLocalService.fetchResourceAction(
+					resourceName, resourceActionId);
+
+			if (resourceAction != null) {
+				long bitwiseValue = resourceAction.getBitwiseValue();
+
+				if (resourceBlockLocalService.isSupported(resourceName)) {
+					iterator = groups.iterator();
+
+					while (iterator.hasNext()) {
+						Group group = iterator.next();
+
+						ResourceTypePermission resourceTypePermission =
+							resourceTypePermissionPersistence.fetchByC_G_N_R(
+								companyId, group.getGroupId(), resourceName,
+								resourceRoleId);
+
+						if ((resourceTypePermission == null) ||
+							((resourceTypePermission.getActionIds() &
+							  bitwiseValue) == 0)) {
+
+							iterator.remove();
+						}
+					}
+				}
+				else {
+					iterator = groups.iterator();
+
+					while (iterator.hasNext()) {
+						Group group = iterator.next();
+
+						ResourcePermission resourcePermission =
+							resourcePermissionPersistence.fetchByC_N_S_P_R(
+								companyId, resourceName, resourceScope,
+									String.valueOf(group.getGroupId()),
+									resourceRoleId);
+
+						if ((resourcePermission == null) ||
+							((resourcePermission.getActionIds() &
+							  bitwiseValue) == 0)) {
+
+							iterator.remove();
+						}
+					}
+				}
+			}
+		}
+
+		// Join by Groups_Roles
+
 		Long userId = (Long)params.remove("usersGroups");
 
 		if (userId == null) {
 			return groups;
 		}
-
-		// Join by Groups_Roles
 
 		Set<Group> resultGroups = new HashSet<Group>(groups);
 
@@ -4021,7 +4089,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 			String[] searchNames = CustomSQLUtil.keywords(name);
 
 			String guestName = StringUtil.quote(
-				GroupConstants.GUEST.toLowerCase(), StringPool.PERCENT);
+				StringUtil.toLowerCase(GroupConstants.GUEST),
+				StringPool.PERCENT);
 
 			return ArrayUtil.append(searchNames, guestName);
 		}

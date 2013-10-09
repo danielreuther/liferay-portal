@@ -33,6 +33,10 @@ public interface WebKeys {
 
 	public static final String AUTHENTICATION_TOKEN = "LIFERAY_SHARED_AUTHENTICATION_TOKEN";
 
+	public static final String BROWSER_SNIFFER_REVISION = "BROWSER_SNIFFER_REVISION";
+
+	public static final String BROWSER_SNIFFER_VERSION = "BROWSER_SNIFFER_VERSION";
+
 	public static final String CLP_MESSAGE_LISTENERS = "CLP_MESSAGE_LISTENERS";
 
 	public static final String CTX = "CTX";
@@ -126,6 +130,10 @@ public interface WebKeys {
 	public static final String PORTLET_PREFERENCES_MAP = "PORTLET_PREFERENCES_MAP";
 
 	public static final String PORTLET_RESOURCE_STATIC_URLS = "PORTLET_RESOURCE_STATIC_URLS";
+
+	public static final String PORTLET_SESSION = "PORTLET_SESSION";
+
+	public static final String PORTLET_SESSION_ATTRIBUTES = "PORTLET_SESSION_ATTRIBUTES_";
 
 	public static final String REDIRECT = "REDIRECT";
 

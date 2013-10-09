@@ -1,6 +1,7 @@
 AUI.add(
 	'liferay-dockbar-add-page',
 	function(A) {
+		var AObject = A.Object;
 		var Lang = A.Lang;
 
 		var Dockbar = Liferay.Dockbar;
@@ -23,6 +24,8 @@ AUI.add(
 
 		var STR_HIDDEN_CHECKBOX = 'addLayoutHiddenCheckbox';
 
+		var STR_ID = 'id';
+
 		var STR_NAME = 'addLayoutName';
 
 		var STR_NODE_LIST = 'nodeList';
@@ -37,7 +40,7 @@ AUI.add(
 
 		var AddPage = A.Component.create(
 			{
-				AUGMENTS: [Dockbar.AddPageSearch, Liferay.PortletBase],
+				AUGMENTS: [Liferay.PortletBase],
 
 				EXTENDS: Dockbar.AddBase,
 
@@ -102,6 +105,65 @@ AUI.add(
 						instance._bindUI();
 					},
 
+					_addPage: function(event) {
+						var instance = this;
+
+						var addForm = instance._addForm;
+
+						var formValidator = instance._getFormValidator(addForm);
+
+						if (!formValidator.hasErrors()) {
+							instance._disableFormElements();
+
+							if (instance.get('refresh')) {
+								submitForm(addForm);
+							}
+							else {
+								event.preventDefault();
+
+								A.io.request(
+									addForm.get('action'),
+									{
+										dataType: 'json',
+										form: {
+											id: addForm.get(STR_ID)
+										},
+										after: {
+											success: function(event, id, obj) {
+												var responseData = this.get(STR_RESPONSE_DATA);
+
+												instance._loadingMask.hide();
+
+												var panel = addForm.ancestor();
+
+												panel.empty();
+
+												panel.plug(A.Plugin.ParseContent);
+
+												panel.setContent(responseData);
+											}
+										}
+									}
+								);
+
+								instance._loadingMask.show();
+							}
+						}
+						else {
+							AObject.some(
+								formValidator.errors,
+								function(item, index, collection) {
+									var field = formValidator.getField(index);
+
+									field.scrollIntoView();
+									field.focus();
+
+									return true;
+								}
+							);
+						}
+					},
+
 					_bindUI: function() {
 						var instance = this;
 
@@ -116,58 +178,6 @@ AUI.add(
 						instance._togglerDelegate.on('toggler:expandedChange', instance._updateActivePage, instance);
 					},
 
-					_addPage: function(event) {
-						var instance = this;
-
-						var addForm = instance._addForm;
-
-						if (instance.get('refresh')) {
-							submitForm(addForm);
-						}
-						else {
-							event.preventDefault();
-
-							var nodes = instance.get(STR_NODES);
-
-							nodes.each(
-								function(item, index, collection) {
-									var header = item.one(SELECTOR_TOGGLER_HEADER);
-
-									var active = header.hasClass(CSS_ACTIVE);
-
-									item.all('input, select, textarea').set('disabled', !active);
-								}
-							);
-
-							A.io.request(
-								addForm.get('action'),
-								{
-									dataType: 'json',
-									form: {
-										id: addForm.get('id')
-									},
-									after: {
-										success: function(event, id, obj) {
-											var response = this.get(STR_RESPONSE_DATA);
-
-											instance._loadingMask.hide();
-
-											var panel = addForm.ancestor();
-
-											panel.empty();
-
-											panel.plug(A.Plugin.ParseContent);
-
-											panel.setContent(response);
-										}
-									}
-								}
-							);
-
-							instance._loadingMask.show();
-						}
-					},
-
 					_cancelAction: function(event) {
 						var instance = this;
 
@@ -176,6 +186,32 @@ AUI.add(
 
 							Dockbar.toggleAddPanel();
 						}
+					},
+
+					_disableFormElements: function() {
+						var instance = this;
+
+						var nodes = instance.get(STR_NODES);
+
+						nodes.each(
+							function(item, index, collection) {
+								var header = item.one(SELECTOR_TOGGLER_HEADER);
+
+								var active = header.hasClass(CSS_ACTIVE);
+
+								item.all('input, select, textarea').attr('disabled', !active);
+							}
+						);
+					},
+
+					_getFormValidator: function(formNode) {
+						var instance = this;
+
+						if (!instance._formValidator) {
+							instance._formValidator = Liferay.Form.get(formNode.attr('id')).formValidator;
+						}
+
+						return instance._formValidator;
 					},
 
 					_updateActivePage: function(event) {

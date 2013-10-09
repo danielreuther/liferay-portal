@@ -195,8 +195,18 @@ public class UpdateLayoutAction extends JSONAction {
 
 				return themeDisplay.translate(
 					"you-cannot-delete-this-page-because-the-next-page-is-of-" +
-						"type-x-and-it-cannot-be-the-first-page",
+						"type-x-and-so-cannot-be-the-first-page",
 					"layout.types." + lte.getLayoutType());
+			}
+
+			if (cmd.equals("delete") &&
+				(lte.getType() ==
+					LayoutTypeException.FIRST_LAYOUT_PERMISSION)) {
+
+				return themeDisplay.translate(
+					"you-cannot-delete-this-page-because-the-next-page-is-" +
+						"not-vieweable-by-unathenticated-users-and-so-cannot-" +
+							"be-the-first-page");
 			}
 
 			if ((cmd.equals("display_order") || cmd.equals("priority")) &&
@@ -288,11 +298,14 @@ public class UpdateLayoutAction extends JSONAction {
 		long groupId = ParamUtil.getLong(request, "groupId");
 		boolean privateLayout = ParamUtil.getBoolean(request, "privateLayout");
 		long layoutId = ParamUtil.getLong(request, "layoutId");
+		long nextLayoutId = ParamUtil.getLong(request, "nextLayoutId");
+		long previousLayoutId = ParamUtil.getLong(request, "previousLayoutId");
 		int priority = ParamUtil.getInteger(request, "priority");
 
 		if (plid <= 0) {
 			LayoutServiceUtil.updatePriority(
-				groupId, privateLayout, layoutId, priority);
+				groupId, privateLayout, layoutId, nextLayoutId,
+				previousLayoutId);
 		}
 		else {
 			LayoutServiceUtil.updatePriority(plid, priority);

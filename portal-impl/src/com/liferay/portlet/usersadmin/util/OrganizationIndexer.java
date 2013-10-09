@@ -110,7 +110,7 @@ public class OrganizationIndexer extends BaseIndexer {
 			for (Organization organization : organizationsTree) {
 				String treePath = organization.buildTreePath();
 
-				booleanQuery.addTerm("treePath", treePath, true);
+				booleanQuery.addTerm(Field.TREE_PATH, treePath, true);
 			}
 
 			contextQuery.add(booleanQuery, BooleanClauseOccur.MUST);
@@ -171,14 +171,11 @@ public class OrganizationIndexer extends BaseIndexer {
 		document.addText(Field.NAME, organization.getName());
 		document.addKeyword(
 			Field.ORGANIZATION_ID, organization.getOrganizationId());
+		document.addKeyword(Field.TREE_PATH, organization.buildTreePath());
 		document.addKeyword(Field.TYPE, organization.getType());
 
 		document.addKeyword(
 			"parentOrganizationId", organization.getParentOrganizationId());
-
-		String treePath = organization.buildTreePath();
-
-		document.addKeyword("treePath", treePath);
 
 		populateAddresses(
 			document, organization.getAddresses(), organization.getRegionId(),
@@ -306,8 +303,6 @@ public class OrganizationIndexer extends BaseIndexer {
 	}
 
 	protected void reindexOrganizations(long companyId) throws Exception {
-		final Collection<Document> documents = new ArrayList<Document>();
-
 		ActionableDynamicQuery actionableDynamicQuery =
 			new OrganizationActionableDynamicQuery() {
 
@@ -317,17 +312,15 @@ public class OrganizationIndexer extends BaseIndexer {
 
 				Document document = getDocument(organization);
 
-				documents.add(document);
+				addDocument(document);
 			}
 
 		};
 
 		actionableDynamicQuery.setCompanyId(companyId);
+		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
 		actionableDynamicQuery.performActions();
-
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
 	}
 
 }

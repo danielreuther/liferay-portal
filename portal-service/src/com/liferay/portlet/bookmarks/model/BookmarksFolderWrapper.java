@@ -61,6 +61,7 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("resourceBlockId", getResourceBlockId());
 		attributes.put("parentFolderId", getParentFolderId());
+		attributes.put("treePath", getTreePath());
 		attributes.put("name", getName());
 		attributes.put("description", getDescription());
 		attributes.put("status", getStatus());
@@ -131,6 +132,12 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 
 		if (parentFolderId != null) {
 			setParentFolderId(parentFolderId);
+		}
+
+		String treePath = (String)attributes.get("treePath");
+
+		if (treePath != null) {
+			setTreePath(treePath);
 		}
 
 		String name = (String)attributes.get("name");
@@ -413,6 +420,26 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 	}
 
 	/**
+	* Returns the tree path of this bookmarks folder.
+	*
+	* @return the tree path of this bookmarks folder
+	*/
+	@Override
+	public java.lang.String getTreePath() {
+		return _bookmarksFolder.getTreePath();
+	}
+
+	/**
+	* Sets the tree path of this bookmarks folder.
+	*
+	* @param treePath the tree path of this bookmarks folder
+	*/
+	@Override
+	public void setTreePath(java.lang.String treePath) {
+		_bookmarksFolder.setTreePath(treePath);
+	}
+
+	/**
 	* Returns the name of this bookmarks folder.
 	*
 	* @return the name of this bookmarks folder
@@ -555,6 +582,60 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 	}
 
 	/**
+	* Returns the trash entry created when this bookmarks folder was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this bookmarks folder.
+	*
+	* @return the trash entry created when this bookmarks folder was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksFolder.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this bookmarks folder.
+	*
+	* @return the class primary key of the trash entry for this bookmarks folder
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _bookmarksFolder.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this bookmarks folder.
+	*
+	* @return the trash handler for this bookmarks folder
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _bookmarksFolder.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this bookmarks folder is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this bookmarks folder is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _bookmarksFolder.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this bookmarks folder is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this bookmarks folder is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _bookmarksFolder.isInTrashContainer();
+	}
+
+	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
 	@Override
@@ -623,16 +704,6 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 	}
 
 	/**
-	* Returns <code>true</code> if this bookmarks folder is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this bookmarks folder is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _bookmarksFolder.isInTrash();
-	}
-
-	/**
 	* Returns <code>true</code> if this bookmarks folder is pending.
 	*
 	* @return <code>true</code> if this bookmarks folder is pending; <code>false</code> otherwise
@@ -665,7 +736,7 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 	/**
 	* Sets the container model ID of this bookmarks folder.
 	*
-	* @param container model ID of this bookmarks folder
+	* @param containerModelId the container model ID of this bookmarks folder
 	*/
 	@Override
 	public void setContainerModelId(long containerModelId) {
@@ -695,7 +766,7 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 	/**
 	* Sets the parent container model ID of this bookmarks folder.
 	*
-	* @param parent container model ID of this bookmarks folder
+	* @param parentContainerModelId the parent container model ID of this bookmarks folder
 	*/
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId) {
@@ -808,6 +879,13 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 	}
 
 	@Override
+	public java.lang.String buildTreePath()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksFolder.buildTreePath();
+	}
+
+	@Override
 	public java.util.List<java.lang.Long> getAncestorFolderIds()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -826,16 +904,6 @@ public class BookmarksFolderWrapper implements BookmarksFolder,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _bookmarksFolder.getParentFolder();
-	}
-
-	@Override
-	public com.liferay.portlet.bookmarks.model.BookmarksFolder getTrashContainer() {
-		return _bookmarksFolder.getTrashContainer();
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		return _bookmarksFolder.isInTrashContainer();
 	}
 
 	@Override

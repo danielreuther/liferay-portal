@@ -7,7 +7,11 @@ AUI.add(
 			init: function(config) {
 				var instance = this;
 
-				instance._namespace = config.namespace;
+				var namespace = config.namespace;
+
+				instance._namespace = namespace;
+
+				instance._stagingBar = A.oneNS(namespace, '#stagingBar');
 
 				Liferay.publish(
 					{
@@ -30,6 +34,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-io-plugin-deprecated', 'liferay-util-window']
+		requires: ['aui-io-plugin-deprecated', 'liferay-node', 'liferay-util-window']
 	}
 );

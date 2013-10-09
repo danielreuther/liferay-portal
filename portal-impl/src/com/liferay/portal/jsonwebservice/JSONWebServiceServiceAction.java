@@ -17,24 +17,22 @@ package com.liferay.portal.jsonwebservice;
 import com.liferay.portal.action.JSONServiceAction;
 import com.liferay.portal.jsonwebservice.action.JSONWebServiceDiscoverAction;
 import com.liferay.portal.jsonwebservice.action.JSONWebServiceInvokerAction;
-import com.liferay.portal.kernel.bean.BeanLocator;
-import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
-import com.liferay.portal.kernel.bean.PortletBeanLocatorUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upload.UploadException;
-import com.liferay.portal.kernel.util.ContextPathUtil;
+import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.spring.context.PortalContextLoaderListener;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.WebKeys;
 
 import java.lang.reflect.InvocationTargetException;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -46,50 +44,6 @@ import org.apache.struts.action.ActionMapping;
  * @author Raymond Augé
  */
 public class JSONWebServiceServiceAction extends JSONServiceAction {
-
-	public JSONWebServiceServiceAction(
-		ServletContext servletContext, ClassLoader classLoader) {
-
-		_contextPath = ContextPathUtil.getContextPath(servletContext);
-
-		String contextName = _contextPath;
-
-		BeanLocator beanLocator = null;
-
-		if (_contextPath.equals(
-				PortalContextLoaderListener.getPortalServletContextPath()) ||
-			_contextPath.isEmpty()) {
-
-			beanLocator = PortalBeanLocatorUtil.getBeanLocator();
-		}
-		else {
-			contextName = _contextPath;
-
-			if (contextName.startsWith(StringPool.SLASH)) {
-				contextName = contextName.substring(1);
-			}
-
-			beanLocator = PortletBeanLocatorUtil.getBeanLocator(contextName);
-		}
-
-		JSONWebServiceRegistrator jsonWebServiceRegitrator =
-			new JSONWebServiceRegistrator();
-
-		jsonWebServiceRegitrator.processAllBeans(_contextPath, beanLocator);
-
-		if (_log.isInfoEnabled()) {
-			int count =
-				JSONWebServiceActionsManagerUtil.getJSONWebServiceActionsCount(
-					_contextPath);
-
-			_log.info("Configured " + count + " actions for " + _contextPath);
-		}
-	}
-
-	public void destroy() {
-		JSONWebServiceActionsManagerUtil.unregisterJSONWebServiceActions(
-			_contextPath);
-	}
 
 	@Override
 	public String getJSON(
@@ -138,6 +92,46 @@ public class JSONWebServiceServiceAction extends JSONServiceAction {
 		}
 	}
 
+	/**
+	 * @see JSONServiceAction#getCSRFOrigin(HttpServletRequest)
+	 */
+	@Override
+	protected String getCSRFOrigin(HttpServletRequest request) {
+		String uri = request.getRequestURI();
+
+		int x = uri.indexOf("jsonws/");
+
+		if (x < 0) {
+			return ClassUtil.getClassName(this);
+		}
+
+		String path = uri.substring(x + 7);
+
+		String[] pathArray = StringUtil.split(path, CharPool.SLASH);
+
+		if (pathArray.length < 2) {
+			return ClassUtil.getClassName(this);
+		}
+
+		StringBundler sb = new StringBundler(6);
+
+		sb.append(ClassUtil.getClassName(this));
+		sb.append(StringPool.COLON);
+		sb.append(StringPool.SLASH);
+
+		String serviceClassName = pathArray[0];
+
+		sb.append(serviceClassName);
+
+		sb.append(StringPool.SLASH);
+
+		String serviceMethodName = pathArray[1];
+
+		sb.append(serviceMethodName);
+
+		return sb.toString();
+	}
+
 	protected JSONWebServiceAction getJSONWebServiceAction(
 		HttpServletRequest request) {
 
@@ -164,7 +158,5 @@ public class JSONWebServiceServiceAction extends JSONServiceAction {
 
 	private static Log _log = LogFactoryUtil.getLog(
 		JSONWebServiceServiceAction.class);
-
-	private String _contextPath;
 
 }

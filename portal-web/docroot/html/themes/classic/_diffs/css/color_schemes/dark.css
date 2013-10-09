@@ -56,15 +56,15 @@
 
 	/* ---------- Portlet ---------- */
 
-	section.portlet {
+	.portlet {
 		background: #363636;
 	}
 
-	.portlet-topper .portlet-title {
+	.portlet-title {
 		color: #00CAFF;
 	}
 
-	/* ---------- Iframe Popup ---------- */
+	/* ---------- Iframe popup ---------- */
 
 	.dialog-iframe-root-node {
 		body.dark {

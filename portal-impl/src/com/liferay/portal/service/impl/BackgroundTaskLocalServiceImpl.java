@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.backgroundtask.BackgroundTaskExecutor;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusRegistry;
 import com.liferay.portal.kernel.bean.BeanReference;
+import com.liferay.portal.kernel.cluster.Clusterable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -99,12 +100,8 @@ public class BackgroundTaskLocalServiceImpl
 
 				@Override
 				public Void call() throws Exception {
-					Message message = new Message();
-
-					message.put("backgroundTaskId", backgroundTaskId);
-
-					MessageBusUtil.sendMessage(
-						DestinationNames.BACKGROUND_TASK, message);
+					backgroundTaskLocalService.triggerBackgroundTask(
+						backgroundTaskId);
 
 					return null;
 				}
@@ -198,6 +195,56 @@ public class BackgroundTaskLocalServiceImpl
 		return backgroundTask;
 	}
 
+	@Clusterable(onMaster = true)
+	@Override
+	public void cleanUpBackgroundTask(
+		final BackgroundTask backgroundTask, final int status) {
+
+		try {
+			Lock lock = lockLocalService.getLock(
+				BackgroundTaskExecutor.class.getName(),
+				backgroundTask.getTaskExecutorClassName());
+
+			String owner =
+				backgroundTask.getName() + StringPool.POUND +
+					backgroundTask.getBackgroundTaskId();
+
+			if (owner.equals(lock.getOwner())) {
+				lockLocalService.unlock(
+					BackgroundTaskExecutor.class.getName(),
+					backgroundTask.getTaskExecutorClassName());
+			}
+		}
+		catch (Exception e) {
+		}
+
+		TransactionCommitCallbackRegistryUtil.registerCallback(
+			new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					Message message = new Message();
+
+					message.put(
+						"backgroundTaskId",
+						backgroundTask.getBackgroundTaskId());
+					message.put("name", backgroundTask.getName());
+					message.put("status", status);
+					message.put(
+						"taskExecutorClassName",
+						backgroundTask.getTaskExecutorClassName());
+
+					MessageBusUtil.sendMessage(
+						DestinationNames.BACKGROUND_TASK_STATUS, message);
+
+					return null;
+				}
+
+			}
+		);
+	}
+
+	@Clusterable(onMaster = true)
 	@Override
 	public void cleanUpBackgroundTasks() throws SystemException {
 		List<BackgroundTask> backgroundTasks =
@@ -346,6 +393,34 @@ public class BackgroundTaskLocalServiceImpl
 
 	@Override
 	public List<BackgroundTask> getBackgroundTasks(
+			long groupId, String[] taskExecutorClassNames)
+		throws SystemException {
+
+		return backgroundTaskPersistence.findByG_T(
+			groupId, taskExecutorClassNames);
+	}
+
+	@Override
+	public List<BackgroundTask> getBackgroundTasks(
+			long groupId, String[] taskExecutorClassNames, int status)
+		throws SystemException {
+
+		return backgroundTaskPersistence.findByG_T_S(
+			groupId, taskExecutorClassNames, status);
+	}
+
+	@Override
+	public List<BackgroundTask> getBackgroundTasks(
+			long groupId, String[] taskExecutorClassNames, int start, int end,
+			OrderByComparator orderByComparator)
+		throws SystemException {
+
+		return backgroundTaskPersistence.findByG_T(
+			groupId, taskExecutorClassNames, start, end, orderByComparator);
+	}
+
+	@Override
+	public List<BackgroundTask> getBackgroundTasks(
 			String taskExecutorClassName, int status)
 		throws SystemException {
 
@@ -361,6 +436,25 @@ public class BackgroundTaskLocalServiceImpl
 
 		return backgroundTaskPersistence.findByT_S(
 			taskExecutorClassName, status, start, end, orderByComparator);
+	}
+
+	@Override
+	public List<BackgroundTask> getBackgroundTasks(
+			String[] taskExecutorClassNames, int status)
+		throws SystemException {
+
+		return backgroundTaskPersistence.findByT_S(
+			taskExecutorClassNames, status);
+	}
+
+	@Override
+	public List<BackgroundTask> getBackgroundTasks(
+			String[] taskExecutorClassNames, int status, int start, int end,
+			OrderByComparator orderByComparator)
+		throws SystemException {
+
+		return backgroundTaskPersistence.findByT_S(
+			taskExecutorClassNames, status, start, end, orderByComparator);
 	}
 
 	@Override
@@ -401,6 +495,25 @@ public class BackgroundTaskLocalServiceImpl
 	}
 
 	@Override
+	public int getBackgroundTasksCount(
+			long groupId, String[] taskExecutorClassNames)
+		throws SystemException {
+
+		return backgroundTaskPersistence.countByG_T(
+			groupId, taskExecutorClassNames);
+	}
+
+	@Override
+	public int getBackgroundTasksCount(
+			long groupId, String[] taskExecutorClassNames, boolean completed)
+		throws SystemException {
+
+		return backgroundTaskPersistence.countByG_T_C(
+			groupId, taskExecutorClassNames, completed);
+	}
+
+	@Clusterable(onMaster = true)
+	@Override
 	public String getBackgroundTaskStatusJSON(long backgroundTaskId) {
 		BackgroundTaskStatus backgroundTaskStatus =
 			_backgroundTaskStatusRegistry.getBackgroundTaskStatus(
@@ -413,6 +526,7 @@ public class BackgroundTaskLocalServiceImpl
 		return StringPool.BLANK;
 	}
 
+	@Clusterable(onMaster = true)
 	@Override
 	public void resumeBackgroundTask(long backgroundTaskId)
 		throws SystemException {
@@ -434,52 +548,14 @@ public class BackgroundTaskLocalServiceImpl
 		MessageBusUtil.sendMessage(DestinationNames.BACKGROUND_TASK, message);
 	}
 
-	protected void cleanUpBackgroundTask(
-		final BackgroundTask backgroundTask, final int status) {
+	@Clusterable(onMaster = true)
+	@Override
+	public void triggerBackgroundTask(long backgroundTaskId) {
+		Message message = new Message();
 
-		try {
-			Lock lock = lockLocalService.getLock(
-				BackgroundTaskExecutor.class.getName(),
-				backgroundTask.getTaskExecutorClassName());
+		message.put("backgroundTaskId", backgroundTaskId);
 
-			String owner =
-				backgroundTask.getName() + StringPool.POUND +
-					backgroundTask.getBackgroundTaskId();
-
-			if (owner.equals(lock.getOwner())) {
-				lockLocalService.unlock(
-					BackgroundTaskExecutor.class.getName(),
-					backgroundTask.getTaskExecutorClassName());
-			}
-		}
-		catch (Exception e) {
-		}
-
-		TransactionCommitCallbackRegistryUtil.registerCallback(
-			new Callable<Void>() {
-
-				@Override
-				public Void call() throws Exception {
-					Message responseMessage = new Message();
-
-					responseMessage.put(
-						"backgroundTaskId",
-						backgroundTask.getBackgroundTaskId());
-					responseMessage.put("name", backgroundTask.getName());
-					responseMessage.put("status", status);
-					responseMessage.put(
-						"taskExecutorClassName",
-						backgroundTask.getTaskExecutorClassName());
-
-					MessageBusUtil.sendMessage(
-						DestinationNames.BACKGROUND_TASK_STATUS,
-						responseMessage);
-
-					return null;
-				}
-
-			}
-		);
+		MessageBusUtil.sendMessage(DestinationNames.BACKGROUND_TASK, message);
 	}
 
 	@BeanReference(type = BackgroundTaskStatusRegistry.class)

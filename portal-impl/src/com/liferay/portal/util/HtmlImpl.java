@@ -134,13 +134,12 @@ public class HtmlImpl implements Html {
 		if (sb == null) {
 			return text;
 		}
-		else {
-			if (lastReplacementIndex < text.length()) {
-				sb.append(text.substring(lastReplacementIndex));
-			}
 
-			return sb.toString();
+		if (lastReplacementIndex < text.length()) {
+			sb.append(text.substring(lastReplacementIndex));
 		}
+
+		return sb.toString();
 	}
 
 	@Override
@@ -226,7 +225,7 @@ public class HtmlImpl implements Html {
 		}
 
 		if (href.indexOf(StringPool.COLON) == 10) {
-			String protocol = href.substring(0, 10).toLowerCase();
+			String protocol = StringUtil.toLowerCase(href.substring(0, 10));
 
 			if (protocol.equals("javascript")) {
 				href = StringUtil.replaceFirst(href, StringPool.COLON, "%3a");

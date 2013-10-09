@@ -67,7 +67,6 @@ import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryMetadataLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.service.DLFolderServiceUtil;
 import com.liferay.portlet.documentlibrary.service.permission.DLFileEntryPermission;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFileEntryActionableDynamicQuery;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFolderActionableDynamicQuery;
@@ -87,8 +86,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -195,29 +192,6 @@ public class DLFileEntryIndexer extends BaseIndexer {
 			contextQuery.addRequiredTerm(
 				ddmStructureFieldName,
 				StringPool.QUOTE + ddmStructureFieldValue + StringPool.QUOTE);
-		}
-
-		long[] folderIds = searchContext.getFolderIds();
-
-		if ((folderIds != null) && (folderIds.length > 0) &&
-			(folderIds[0] !=
-				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
-
-			BooleanQuery folderIdsQuery = BooleanQueryFactoryUtil.create(
-				searchContext);
-
-			for (long folderId : folderIds) {
-				try {
-					DLFolderServiceUtil.getFolder(folderId);
-				}
-				catch (Exception e) {
-					continue;
-				}
-
-				folderIdsQuery.addTerm(Field.FOLDER_ID, folderId);
-			}
-
-			contextQuery.add(folderIdsQuery, BooleanClauseOccur.MUST);
 		}
 
 		String[] mimeTypes = (String[])searchContext.getAttribute("mimeTypes");
@@ -416,6 +390,9 @@ public class DLFileEntryIndexer extends BaseIndexer {
 			document.addText(
 				Field.PROPERTIES, dlFileEntry.getLuceneProperties());
 			document.addText(Field.TITLE, dlFileEntry.getTitle());
+			document.addKeyword(
+				Field.TREE_PATH,
+				StringUtil.split(dlFileEntry.getTreePath(), CharPool.SLASH));
 
 			document.addKeyword(
 				"dataRepositoryId", dlFileEntry.getDataRepositoryId());
@@ -458,19 +435,17 @@ public class DLFileEntryIndexer extends BaseIndexer {
 				}
 			}
 
-			if (!dlFileVersion.isInTrash() &&
-				dlFileVersion.isInTrashContainer()) {
-
-				DLFolder folder = dlFileVersion.getTrashContainer();
+			if (!dlFileEntry.isInTrash() && dlFileEntry.isInTrashContainer()) {
+				DLFolder dlFolder = dlFileEntry.getTrashContainer();
 
 				addTrashFields(
-					document, DLFolder.class.getName(), folder.getFolderId(),
+					document, DLFolder.class.getName(), dlFolder.getFolderId(),
 					null, null, DLFileEntryAssetRendererFactory.TYPE);
 
 				document.addKeyword(
 					Field.ROOT_ENTRY_CLASS_NAME, DLFolder.class.getName());
 				document.addKeyword(
-					Field.ROOT_ENTRY_CLASS_PK, folder.getFolderId());
+					Field.ROOT_ENTRY_CLASS_PK, dlFolder.getFolderId());
 				document.addKeyword(
 					Field.STATUS, WorkflowConstants.STATUS_IN_TRASH);
 			}
@@ -526,7 +501,7 @@ public class DLFileEntryIndexer extends BaseIndexer {
 
 		DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
 
-		if (!dlFileVersion.isApproved() && !dlFileVersion.isInTrash()) {
+		if (!dlFileVersion.isApproved() && !dlFileEntry.isInTrash()) {
 			return;
 		}
 
@@ -585,8 +560,6 @@ public class DLFileEntryIndexer extends BaseIndexer {
 			long companyId, final long groupId, final long dataRepositoryId)
 		throws PortalException, SystemException {
 
-		final Collection<Document> documents = new ArrayList<Document>();
-
 		ActionableDynamicQuery actionableDynamicQuery =
 			new DLFileEntryActionableDynamicQuery() {
 
@@ -607,18 +580,17 @@ public class DLFileEntryIndexer extends BaseIndexer {
 				Document document = getDocument(dlFileEntry);
 
 				if (document != null) {
-					documents.add(document);
+					addDocument(document);
 				}
 			}
 
 		};
 
+		actionableDynamicQuery.setCompanyId(companyId);
 		actionableDynamicQuery.setGroupId(groupId);
+		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
 		actionableDynamicQuery.performActions();
-
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
 	}
 
 	protected void reindexFolders(final long companyId)

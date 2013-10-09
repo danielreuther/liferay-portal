@@ -15,15 +15,11 @@
 package com.liferay.portlet.journal.lar;
 
 import com.liferay.portal.kernel.lar.DataLevel;
-import com.liferay.portal.kernel.lar.ManifestSummary;
 import com.liferay.portal.kernel.lar.PortletDataContext;
-import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
-import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -34,11 +30,9 @@ import com.liferay.portal.model.Layout;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.documentlibrary.lar.DLPortletDataHandler;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateLocalServiceUtil;
-import com.liferay.portlet.journal.NoSuchArticleException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalContentSearchLocalServiceUtil;
@@ -81,24 +75,8 @@ public class JournalContentPortletDataHandler
 
 	public JournalContentPortletDataHandler() {
 		setDataLevel(DataLevel.PORTLET_INSTANCE);
-		setDataPortletPreferences("groupId", "articleId", "templateId");
-		setExportControls(
-			new PortletDataHandlerBoolean(
-				NAMESPACE, "selected-web-content", true, true,
-				new PortletDataHandlerControl[] {
-					new PortletDataHandlerBoolean(
-						NAMESPACE, "referenced-content")
-				},
-				JournalArticle.class.getName()));
-
-		DLPortletDataHandler dlPortletDataHandler = new DLPortletDataHandler();
-
-		setExportMetadataControls(
-			ArrayUtil.append(
-				getExportMetadataControls(),
-				dlPortletDataHandler.getExportMetadataControls()));
-
-		setImportControls(getExportControls()[0]);
+		setDataPortletPreferences("articleId", "ddmTemplateKey", "groupId");
+		setExportControls(new PortletDataHandlerControl[0]);
 		setPublishToLiveByDefault(
 			PropsValues.JOURNAL_CONTENT_PUBLISH_TO_LIVE_BY_DEFAULT);
 	}
@@ -113,21 +91,21 @@ public class JournalContentPortletDataHandler
 			return portletPreferences;
 		}
 
-		portletPreferences.setValue("groupId", StringPool.BLANK);
 		portletPreferences.setValue("articleId", StringPool.BLANK);
+		portletPreferences.setValue("ddmTemplateKey", StringPool.BLANK);
+		portletPreferences.setValue("groupId", StringPool.BLANK);
 
 		return portletPreferences;
 	}
 
 	@Override
-	protected String doExportData(
+	protected PortletPreferences doProcessExportPortletPreferences(
 			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletDataContext.addPermissions(
-			JournalPermission.RESOURCE_NAME,
-			portletDataContext.getScopeGroupId());
+		portletDataContext.addPortletPermissions(
+			JournalPermission.RESOURCE_NAME);
 
 		String articleId = portletPreferences.getValue("articleId", null);
 
@@ -138,7 +116,7 @@ public class JournalContentPortletDataHandler
 						portletId);
 			}
 
-			return StringPool.BLANK;
+			return portletPreferences;
 		}
 
 		long articleGroupId = GetterUtil.getLong(
@@ -150,44 +128,33 @@ public class JournalContentPortletDataHandler
 					"No group id found in preferences of portlet " + portletId);
 			}
 
-			return StringPool.BLANK;
+			return portletPreferences;
 		}
 
 		long previousScopeGroupId = portletDataContext.getScopeGroupId();
 
-		if (articleGroupId != portletDataContext.getScopeGroupId()) {
+		if (articleGroupId != previousScopeGroupId) {
 			portletDataContext.setScopeGroupId(articleGroupId);
 		}
 
 		JournalArticle article = null;
 
-		try {
-			article = JournalArticleLocalServiceUtil.getLatestArticle(
-				articleGroupId, articleId, WorkflowConstants.STATUS_APPROVED);
-		}
-		catch (NoSuchArticleException nsae) {
-		}
+		article = JournalArticleLocalServiceUtil.fetchLatestArticle(
+			articleGroupId, articleId, WorkflowConstants.STATUS_APPROVED);
 
 		if (article == null) {
-			try {
-				article = JournalArticleLocalServiceUtil.getLatestArticle(
-					articleGroupId, articleId,
-					WorkflowConstants.STATUS_EXPIRED);
-			}
-			catch (NoSuchArticleException nsae) {
-			}
+			article = JournalArticleLocalServiceUtil.fetchLatestArticle(
+				articleGroupId, articleId, WorkflowConstants.STATUS_EXPIRED);
 		}
-
-		Element rootElement = addExportDataRootElement(portletDataContext);
 
 		if (article == null) {
 			portletDataContext.setScopeGroupId(previousScopeGroupId);
 
-			return getExportDataRootElementString(rootElement);
+			return portletPreferences;
 		}
 
-		StagedModelDataHandlerUtil.exportStagedModel(
-			portletDataContext, article);
+		StagedModelDataHandlerUtil.exportReferenceStagedModel(
+			portletDataContext, portletId, article);
 
 		String defaultTemplateId = article.getTemplateId();
 		String preferenceTemplateId = portletPreferences.getValue(
@@ -202,32 +169,24 @@ public class JournalContentPortletDataHandler
 				PortalUtil.getClassNameId(DDMStructure.class),
 				preferenceTemplateId, true);
 
-			StagedModelDataHandlerUtil.exportStagedModel(
-				portletDataContext, ddmTemplate);
-
-			Element articleElement = portletDataContext.getExportDataElement(
-				article);
-
-			portletDataContext.addReferenceElement(
-				article, articleElement, ddmTemplate,
-				PortletDataContext.REFERENCE_TYPE_STRONG, false);
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, article, ddmTemplate,
+				PortletDataContext.REFERENCE_TYPE_STRONG);
 		}
 
 		portletDataContext.setScopeGroupId(previousScopeGroupId);
 
-		return getExportDataRootElementString(rootElement);
+		return portletPreferences;
 	}
 
 	@Override
-	protected PortletPreferences doImportData(
+	protected PortletPreferences doProcessImportPortletPreferences(
 			PortletDataContext portletDataContext, String portletId,
-			PortletPreferences portletPreferences, String data)
+			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletDataContext.importPermissions(
-			JournalPermission.RESOURCE_NAME,
-			portletDataContext.getSourceGroupId(),
-			portletDataContext.getScopeGroupId());
+		portletDataContext.importPortletPermissions(
+			JournalPermission.RESOURCE_NAME);
 
 		long previousScopeGroupId = portletDataContext.getScopeGroupId();
 
@@ -244,7 +203,7 @@ public class JournalContentPortletDataHandler
 		List<Element> ddmStructureElements = ddmStructuresElement.elements();
 
 		for (Element ddmStructureElement : ddmStructureElements) {
-			StagedModelDataHandlerUtil.importStagedModel(
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
 				portletDataContext, ddmStructureElement);
 		}
 
@@ -254,7 +213,7 @@ public class JournalContentPortletDataHandler
 		List<Element> ddmTemplateElements = ddmTemplatesElement.elements();
 
 		for (Element ddmTemplateElement : ddmTemplateElements) {
-			StagedModelDataHandlerUtil.importStagedModel(
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
 				portletDataContext, ddmTemplateElement);
 		}
 
@@ -264,7 +223,7 @@ public class JournalContentPortletDataHandler
 		List<Element> articleElements = articlesElement.elements();
 
 		if (!articleElements.isEmpty()) {
-			StagedModelDataHandlerUtil.importStagedModel(
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
 				portletDataContext, articleElements.get(0));
 		}
 
@@ -316,31 +275,6 @@ public class JournalContentPortletDataHandler
 		portletDataContext.setScopeGroupId(previousScopeGroupId);
 
 		return portletPreferences;
-	}
-
-	@Override
-	protected void doPrepareManifestSummary(
-			PortletDataContext portletDataContext,
-			PortletPreferences portletPreferences)
-		throws Exception {
-
-		ManifestSummary manifestSummary =
-			portletDataContext.getManifestSummary();
-
-		if ((portletPreferences == null) ||
-			(manifestSummary.getModelAdditionCount(
-				JournalArticle.class) > -1)) {
-
-			return;
-		}
-
-		String articleId = portletPreferences.getValue(
-			"articleId", StringPool.BLANK);
-
-		if (Validator.isNotNull(articleId)) {
-			manifestSummary.addModelAdditionCount(
-				new StagedModelType(JournalArticle.class), 1);
-		}
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(

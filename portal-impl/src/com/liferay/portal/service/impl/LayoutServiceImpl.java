@@ -65,6 +65,7 @@ import java.util.Map;
  *
  * @author Brian Wing Shun Chan
  * @author Wesley Gong
+ * @author Tibor Lipusz
  */
 public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 
@@ -963,6 +964,20 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 			getUserId(), taskName, groupId, privateLayout, parameterMap, file);
 	}
 
+	@Override
+	public long importLayoutsInBackground(
+			String taskName, long groupId, boolean privateLayout,
+			Map<String, String[]> parameterMap, InputStream inputStream)
+		throws PortalException, SystemException {
+
+		GroupPermissionUtil.check(
+			getPermissionChecker(), groupId, ActionKeys.EXPORT_IMPORT_LAYOUTS);
+
+		return layoutLocalService.importLayoutsInBackground(
+			getUserId(), taskName, groupId, privateLayout, parameterMap,
+			inputStream);
+	}
+
 	/**
 	 * Imports the portlet information (categories, permissions, ... etc.) from
 	 * the file.
@@ -1568,6 +1583,35 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	}
 
 	/**
+	 * Updates the priority of the layout matching the group, layout ID, and
+	 * privacy, setting the layout's priority based on the priorities of the
+	 * next and previous layouts.
+	 *
+	 * @param  groupId the primary key of the group
+	 * @param  privateLayout whether the layout is private to the group
+	 * @param  layoutId the primary key of the layout
+	 * @param  nextLayoutId the primary key of the next layout
+	 * @param  previousLayoutId the primary key of the previous layout
+	 * @return the updated layout
+	 * @throws PortalException if a matching layout could not be found or if the
+	 *         user did not have permission to update the layout
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public Layout updatePriority(
+			long groupId, boolean privateLayout, long layoutId,
+			long nextLayoutId, long previousLayoutId)
+		throws PortalException, SystemException {
+
+		LayoutPermissionUtil.check(
+			getPermissionChecker(), groupId, privateLayout, layoutId,
+			ActionKeys.UPDATE);
+
+		return layoutLocalService.updatePriority(
+			groupId, privateLayout, layoutId, nextLayoutId, previousLayoutId);
+	}
+
+	/**
 	 * Updates the priority of the layout matching the primary key.
 	 *
 	 * @param  plid the primary key of the layout
@@ -1601,6 +1645,19 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	}
 
 	@Override
+	public MissingReferences validateImportLayoutsFile(
+			long groupId, boolean privateLayout,
+			Map<String, String[]> parameterMap, InputStream inputStream)
+		throws PortalException, SystemException {
+
+		GroupPermissionUtil.check(
+			getPermissionChecker(), groupId, ActionKeys.EXPORT_IMPORT_LAYOUTS);
+
+		return layoutLocalService.validateImportLayoutsFile(
+			getUserId(), groupId, privateLayout, parameterMap, inputStream);
+	}
+
+	@Override
 	public MissingReferences validateImportPortletInfo(
 			long plid, long groupId, String portletId,
 			Map<String, String[]> parameterMap, File file)
@@ -1611,6 +1668,19 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 
 		return layoutLocalService.validateImportPortletInfo(
 			getUserId(), plid, groupId, portletId, parameterMap, file);
+	}
+
+	@Override
+	public MissingReferences validateImportPortletInfo(
+			long plid, long groupId, String portletId,
+			Map<String, String[]> parameterMap, InputStream inputStream)
+		throws PortalException, SystemException {
+
+		PortletPermissionUtil.check(
+			getPermissionChecker(), plid, portletId, ActionKeys.CONFIGURATION);
+
+		return layoutLocalService.validateImportPortletInfo(
+			getUserId(), plid, groupId, portletId, parameterMap, inputStream);
 	}
 
 	protected List<Layout> filterLayouts(List<Layout> layouts)

@@ -274,7 +274,7 @@ public class LangBuilder {
 							baseKey);
 
 						if (Validator.isNotNull(translatedBaseKey)) {
-							translatedText = translatedBaseKey + AUTOMATIC_COPY;
+							translatedText = translatedBaseKey;
 						}
 						else {
 							translatedText = value + AUTOMATIC_COPY;
@@ -296,6 +296,11 @@ public class LangBuilder {
 						translatedText = "";
 					}
 					else if (languageId.equals("es") && key.equals("am")) {
+						translatedText = "";
+					}
+					else if (languageId.equals("fi") &&
+							 (key.equals("on") || key.equals("the"))) {
+
 						translatedText = "";
 					}
 					else if (languageId.equals("it") && key.equals("am")) {
@@ -496,20 +501,24 @@ public class LangBuilder {
 			if (pos != -1) {
 				String key = line.substring(0, pos);
 
-				String value = _fixTranslation(line.substring(pos + 1));
+				String value = line.substring(pos + 1);
 
-				value = _fixEnglishTranslation(key, value);
+				if (Validator.isNotNull(value)) {
+					value = _fixTranslation(line.substring(pos + 1));
 
-				if (_portalLanguageProperties != null) {
-					String portalValue = String.valueOf(
-						_portalLanguageProperties.get(key));
+					value = _fixEnglishTranslation(key, value);
 
-					if (value.equals(portalValue)) {
-						System.out.println("Duplicate key " + key);
+					if (_portalLanguageProperties != null) {
+						String portalValue = String.valueOf(
+							_portalLanguageProperties.get(key));
+
+						if (value.equals(portalValue)) {
+							System.out.println("Duplicate key " + key);
+						}
 					}
-				}
 
-				messages.put(key, value);
+					messages.put(key, value);
+				}
 			}
 			else {
 				if (begin && line.equals(StringPool.BLANK)) {

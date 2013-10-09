@@ -248,7 +248,7 @@ if (Validator.isNull(redirect)) {
 
 				<c:if test="<%= Validator.isNotNull(parentTitle) %>">
 					<aui:field-wrapper label="parent">
-						<%= HtmlUtil.escape(parentTitle) %>
+						<liferay-ui:input-resource url="<%= parentTitle %>" />
 					</aui:field-wrapper>
 				</c:if>
 
@@ -328,14 +328,7 @@ if (Validator.isNull(redirect)) {
 								FileEntry attachmentsFileEntry = attachmentsFileEntries.get(i);
 							%>
 
-								<portlet:resourceURL var="getPageAttachmentURL">
-									<portlet:param name="struts_action" value="/wiki/get_page_attachment" />
-									<portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" />
-									<portlet:param name="title" value="<%= wikiPage.getTitle() %>" />
-									<portlet:param name="fileName" value="<%= attachmentsFileEntry.getTitle() %>" />
-								</portlet:resourceURL>
-
-								<aui:a href="<%= (templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0) ? getPageAttachmentURL : null %>"><%= attachmentsFileEntry.getTitle() %></aui:a> (<%= TextFormatter.formatStorageSize(attachmentsFileEntry.getSize(), locale) %>)<%= (i < (attachmentsFileEntries.size() - 1)) ? ", " : "" %>
+								<aui:a href="<%= (templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0) ? PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, attachmentsFileEntry, StringPool.BLANK) : null %>"><%= attachmentsFileEntry.getTitle() %></aui:a> (<%= TextFormatter.formatStorageSize(attachmentsFileEntry.getSize(), locale) %>)<%= (i < (attachmentsFileEntries.size() - 1)) ? ", " : "" %>
 
 							<%
 							}

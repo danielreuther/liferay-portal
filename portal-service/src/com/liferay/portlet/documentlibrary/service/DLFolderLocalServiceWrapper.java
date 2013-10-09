@@ -808,6 +808,14 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	}
 
 	@Override
+	public int getFoldersCount(long groupId, long parentFolderId, int status,
+		boolean includeMountfolders)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolderLocalService.getFoldersCount(groupId, parentFolderId,
+			status, includeMountfolders);
+	}
+
+	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFolder getMountFolder(
 		long repositoryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -874,6 +882,13 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderLocalService.moveFolder(userId, folderId,
 			parentFolderId, serviceContext);
+	}
+
+	@Override
+	public void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlFolderLocalService.rebuildTree(companyId);
 	}
 
 	@Override

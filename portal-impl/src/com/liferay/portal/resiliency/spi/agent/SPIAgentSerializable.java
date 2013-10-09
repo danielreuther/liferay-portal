@@ -25,8 +25,13 @@ import com.liferay.portal.kernel.nio.intraband.mailbox.MailboxUtil;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.Direction;
 import com.liferay.portal.kernel.resiliency.spi.agent.annotation.DistributedRegistry;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.ThreadLocalDistributor;
 import com.liferay.portal.kernel.util.ThreadLocalDistributorRegistry;
+import com.liferay.portal.model.Portlet;
+import com.liferay.portal.util.ClassLoaderUtil;
+import com.liferay.portal.util.WebKeys;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -97,13 +102,15 @@ public class SPIAgentSerializable implements Serializable {
 
 			// Remove Accept-Encoding header, to prevent content modification
 
-			if (HttpHeaders.ACCEPT_ENCODING.equalsIgnoreCase(headerName)) {
+			if (StringUtil.equalsIgnoreCase(
+					HttpHeaders.ACCEPT_ENCODING, headerName)) {
+
 				continue;
 			}
 
 			// Directly passing around cookie
 
-			if (HttpHeaders.COOKIE.equalsIgnoreCase(headerName)) {
+			if (StringUtil.equalsIgnoreCase(HttpHeaders.COOKIE, headerName)) {
 				continue;
 			}
 
@@ -121,7 +128,7 @@ public class SPIAgentSerializable implements Serializable {
 					values = Collections.emptyList();
 				}
 
-				headers.put(headerName.toLowerCase(), values);
+				headers.put(StringUtil.toLowerCase(headerName), values);
 			}
 		}
 
@@ -133,15 +140,30 @@ public class SPIAgentSerializable implements Serializable {
 	}
 
 	public static Map<String, Serializable> extractSessionAttributes(
-		HttpSession session) {
+		HttpServletRequest request) {
+
+		Portlet portlet = (Portlet)request.getAttribute(
+			WebKeys.SPI_AGENT_PORTLET);
+
+		String portletSessionAttributesKey =
+			WebKeys.PORTLET_SESSION_ATTRIBUTES.concat(portlet.getContextName());
 
 		Map<String, Serializable> sessionAttributes =
 			new HashMap<String, Serializable>();
+
+		HttpSession session = request.getSession();
 
 		Enumeration<String> enumeration = session.getAttributeNames();
 
 		while (enumeration.hasMoreElements()) {
 			String name = enumeration.nextElement();
+
+			if (name.startsWith(WebKeys.PORTLET_SESSION_ATTRIBUTES) &&
+				!name.equals(portletSessionAttributesKey)) {
+
+				continue;
+			}
+
 			Object value = session.getAttribute(name);
 
 			if (value instanceof Serializable) {
@@ -151,6 +173,37 @@ public class SPIAgentSerializable implements Serializable {
 				_log.warn(
 					"Nonserializable session attribute name " + name +
 						" with value " + value);
+			}
+		}
+
+		HttpSession portletSession = (HttpSession)request.getAttribute(
+			WebKeys.PORTLET_SESSION);
+
+		if (portletSession != null) {
+			request.removeAttribute(WebKeys.PORTLET_SESSION);
+
+			HashMap<String, Serializable> portletSessionAttributes =
+				new HashMap<String, Serializable>();
+
+			enumeration = portletSession.getAttributeNames();
+
+			while (enumeration.hasMoreElements()) {
+				String name = enumeration.nextElement();
+				Object value = portletSession.getAttribute(name);
+
+				if (value instanceof Serializable) {
+					portletSessionAttributes.put(name, (Serializable)value);
+				}
+				else if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Nonserializable session attribute name " + name +
+							" with value " + value);
+				}
+			}
+
+			if (!portletSessionAttributes.isEmpty()) {
+				sessionAttributes.put(
+					portletSessionAttributesKey, portletSessionAttributes);
 			}
 		}
 
@@ -185,12 +238,33 @@ public class SPIAgentSerializable implements Serializable {
 
 		Deserializer deserializer = new Deserializer(byteBuffer);
 
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
+
 		try {
-			return deserializer.readObject();
+			String servletContextName = deserializer.readString();
+
+			ClassLoader classLoader = ClassLoaderPool.getClassLoader(
+				servletContextName);
+
+			ClassLoaderUtil.setContextClassLoader(classLoader);
+
+			T t = deserializer.readObject();
+
+			t.servletContextName = servletContextName;
+
+			return t;
 		}
 		catch (ClassNotFoundException cnfe) {
 			throw new IOException(cnfe);
 		}
+		finally {
+			ClassLoaderUtil.setContextClassLoader(contextClassLoader);
+		}
+	}
+
+	public SPIAgentSerializable(String servletContextName) {
+		this.servletContextName = servletContextName;
 	}
 
 	public void writeTo(
@@ -200,6 +274,7 @@ public class SPIAgentSerializable implements Serializable {
 
 		Serializer serializer = new Serializer();
 
+		serializer.writeString(servletContextName);
 		serializer.writeObject(this);
 
 		try {
@@ -240,6 +315,7 @@ public class SPIAgentSerializable implements Serializable {
 		}
 	}
 
+	protected transient String servletContextName;
 	protected ThreadLocalDistributor[] threadLocalDistributors;
 
 	private static Log _log = LogFactoryUtil.getLog(SPIAgentSerializable.class);

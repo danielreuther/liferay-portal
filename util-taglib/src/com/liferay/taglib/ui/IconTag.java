@@ -41,12 +41,20 @@ public class IconTag extends IncludeTag {
 		_alt = alt;
 	}
 
+	public void setAriaRole(String ariaRole) {
+		_ariaRole = ariaRole;
+	}
+
 	public void setCssClass(String cssClass) {
 		_cssClass = cssClass;
 	}
 
 	public void setData(Map<String, Object> data) {
 		_data = data;
+	}
+
+	public void setIconClass(String iconClass) {
+		_iconClass = iconClass;
 	}
 
 	public void setId(String id) {
@@ -116,8 +124,10 @@ public class IconTag extends IncludeTag {
 	@Override
 	protected void cleanUp() {
 		_alt = null;
+		_ariaRole = null;
 		_cssClass = null;
 		_data = null;
+		_iconClass = null;
 		_id = null;
 		_image = null;
 		_imageHover = null;
@@ -195,8 +205,10 @@ public class IconTag extends IncludeTag {
 		}
 
 		request.setAttribute("liferay-ui:icon:alt", _alt);
+		request.setAttribute("liferay-ui:icon:ariaRole", _ariaRole);
 		request.setAttribute("liferay-ui:icon:cssClass", _cssClass);
 		request.setAttribute("liferay-ui:icon:data", _data);
+		request.setAttribute("liferay-ui:icon:iconClass", _iconClass);
 		request.setAttribute("liferay-ui:icon:id", id);
 		request.setAttribute("liferay-ui:icon:image", _image);
 		request.setAttribute("liferay-ui:icon:imageHover", _imageHover);
@@ -224,8 +236,10 @@ public class IconTag extends IncludeTag {
 	private static final String _PAGE = "/html/taglib/ui/icon/page.jsp";
 
 	private String _alt;
+	private String _ariaRole;
 	private String _cssClass;
 	private Map<String, Object> _data;
+	private String _iconClass;
 	private String _id;
 	private String _image;
 	private String _imageHover;

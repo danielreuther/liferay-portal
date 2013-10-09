@@ -17,6 +17,7 @@ package com.liferay.portlet.journal.lar;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
+import com.liferay.portal.kernel.lar.ExportImportHelper;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
@@ -150,14 +151,15 @@ public class JournalFeedStagedModelDataHandler
 			String targetLayoutFriendlyUrl = StringUtil.replaceFirst(
 				feed.getTargetLayoutFriendlyUrl(),
 				StringPool.SLASH + newGroupFriendlyURL + StringPool.SLASH,
-				"/@data_handler_group_friendly_url@/");
+				StringPool.SLASH +
+					ExportImportHelper.DATA_HANDLER_GROUP_FRIENDLY_URL +
+						StringPool.SLASH);
 
 			feed.setTargetLayoutFriendlyUrl(targetLayoutFriendlyUrl);
 		}
 
 		portletDataContext.addClassedModel(
-			feedElement, ExportImportPathUtil.getModelPath(feed), feed,
-			JournalPortletDataHandler.NAMESPACE);
+			feedElement, ExportImportPathUtil.getModelPath(feed), feed);
 	}
 
 	@Override
@@ -187,11 +189,14 @@ public class JournalFeedStagedModelDataHandler
 
 		String oldGroupFriendlyURL = friendlyURLParts[2];
 
-		if (oldGroupFriendlyURL.equals("@data_handler_group_friendly_url@")) {
+		if (oldGroupFriendlyURL.equals(
+				ExportImportHelper.DATA_HANDLER_GROUP_FRIENDLY_URL)) {
+
 			feed.setTargetLayoutFriendlyUrl(
 				StringUtil.replace(
 					feed.getTargetLayoutFriendlyUrl(),
-					"@data_handler_group_friendly_url@", newGroupFriendlyURL));
+					ExportImportHelper.DATA_HANDLER_GROUP_FRIENDLY_URL,
+					newGroupFriendlyURL));
 		}
 
 		String feedId = feed.getFeedId();
@@ -221,7 +226,7 @@ public class JournalFeedStagedModelDataHandler
 				(DDMStructure)portletDataContext.getZipEntryAsObject(
 					ddmStructurePath);
 
-			StagedModelDataHandlerUtil.importStagedModel(
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
 				portletDataContext, ddmStructure);
 
 			Map<String, String> ddmStructureKeys =
@@ -247,7 +252,7 @@ public class JournalFeedStagedModelDataHandler
 				(DDMTemplate)portletDataContext.getZipEntryAsObject(
 					ddmTemplatePath);
 
-			StagedModelDataHandlerUtil.importStagedModel(
+			StagedModelDataHandlerUtil.importReferenceStagedModel(
 				portletDataContext, ddmTemplate);
 
 			Map<String, String> ddmTemplateKeys =
@@ -270,7 +275,7 @@ public class JournalFeedStagedModelDataHandler
 		}
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
-			feed, JournalPortletDataHandler.NAMESPACE);
+			feed);
 
 		boolean addGroupPermissions = creationStrategy.addGroupPermissions(
 			portletDataContext, feed);
@@ -333,8 +338,7 @@ public class JournalFeedStagedModelDataHandler
 					serviceContext);
 			}
 
-			portletDataContext.importClassedModel(
-				feed, importedFeed, JournalPortletDataHandler.NAMESPACE);
+			portletDataContext.importClassedModel(feed, importedFeed);
 
 			if (!feedId.equals(importedFeed.getFeedId())) {
 				if (_log.isWarnEnabled()) {

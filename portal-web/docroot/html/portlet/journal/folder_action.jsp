@@ -28,25 +28,27 @@ else {
 	folder = (JournalFolder)request.getAttribute("view_entries.jsp-folder");
 }
 
+boolean folderSelected = GetterUtil.getBoolean(request.getAttribute("view_entries.jsp-folderSelected"));
+
 String modelResource = null;
 String modelResourceDescription = null;
 String resourcePrimKey = null;
 
-boolean showPermissionsURL = false;
+boolean hasPermissionsPermission = false;
 
 if (folder != null) {
 	modelResource= JournalFolder.class.getName();
 	modelResourceDescription = folder.getName();
 	resourcePrimKey= String.valueOf(folder.getPrimaryKey());
 
-	showPermissionsURL = JournalFolderPermission.contains(permissionChecker, folder, ActionKeys.PERMISSIONS);
+	hasPermissionsPermission = JournalFolderPermission.contains(permissionChecker, folder, ActionKeys.PERMISSIONS);
 }
 else {
 	modelResource= "com.liferay.portlet.journal";
 	modelResourceDescription = HtmlUtil.escape(themeDisplay.getScopeGroupName());
 	resourcePrimKey= String.valueOf(scopeGroupId);
 
-	showPermissionsURL = JournalPermission.contains(permissionChecker, scopeGroupId, ActionKeys.PERMISSIONS);
+	hasPermissionsPermission = JournalPermission.contains(permissionChecker, scopeGroupId, ActionKeys.PERMISSIONS);
 }
 %>
 
@@ -60,6 +62,7 @@ else {
 						<portlet:param name="redirect" value="<%= currentURL %>" />
 						<portlet:param name="groupId" value="<%= String.valueOf(folder.getGroupId()) %>" />
 						<portlet:param name="folderId" value="<%= String.valueOf(folder.getFolderId()) %>" />
+						<portlet:param name="mergeWithParentFolderDisabled" value="<%= String.valueOf(folderSelected) %>" />
 					</portlet:renderURL>
 
 					<liferay-ui:icon
@@ -147,7 +150,7 @@ else {
 			</c:otherwise>
 		</c:choose>
 
-		<c:if test="<%= showPermissionsURL %>">
+		<c:if test="<%= hasPermissionsPermission %>">
 			<liferay-security:permissionsURL
 				modelResource="<%= modelResource %>"
 				modelResourceDescription="<%= modelResourceDescription %>"

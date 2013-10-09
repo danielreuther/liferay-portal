@@ -92,11 +92,10 @@ public class VerifyEmailAddressAction extends Action {
 
 				return actionMapping.findForward("portal.verify_email_address");
 			}
-			else {
-				PortalUtil.sendError(e, request, response);
 
-				return null;
-			}
+			PortalUtil.sendError(e, request, response);
+
+			return null;
 		}
 	}
 
@@ -119,7 +118,8 @@ public class VerifyEmailAddressAction extends Action {
 			ThemeDisplay themeDisplay)
 		throws Exception {
 
-		AuthTokenUtil.check(request);
+		AuthTokenUtil.checkCSRFToken(
+			request, VerifyEmailAddressAction.class.getName());
 
 		String ticketKey = ParamUtil.getString(request, "ticketKey");
 

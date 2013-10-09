@@ -38,6 +38,8 @@ boolean iconMenuShowWhenSingleIcon = GetterUtil.getBoolean((String)request.getAt
 Boolean iconMenuSingleIcon = (Boolean)request.getAttribute("liferay-ui:icon-menu:single-icon");
 
 String alt = (String)request.getAttribute("liferay-ui:icon:alt");
+String ariaRole = (String)request.getAttribute("liferay-ui:icon:ariaRole");
+String iconClass = (String)request.getAttribute("liferay-ui:icon:iconClass");
 String id = (String)request.getAttribute("liferay-ui:icon:id");
 String image = (String)request.getAttribute("liferay-ui:icon:image");
 String imageHover = (String)request.getAttribute("liferay-ui:icon:imageHover");
@@ -71,6 +73,7 @@ if ((iconMenuIconCount != null) || (iconMenuSingleIcon != null)) {
 
 if (message == null) {
 	message = StringUtil.replace(image, StringPool.UNDERLINE, StringPool.DASH);
+	message = StringUtil.replace(message, "../aui/", StringPool.BLANK);
 }
 
 if (useDialog && Validator.isNull(data.get("title"))) {

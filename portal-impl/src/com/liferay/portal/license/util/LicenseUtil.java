@@ -256,7 +256,7 @@ public class LicenseUtil {
 
 			String macAddress = matcher.group(1);
 
-			macAddress = macAddress.toLowerCase();
+			macAddress = StringUtil.toLowerCase(macAddress);
 			macAddress = macAddress.replace(CharPool.DASH, CharPool.COLON);
 			macAddress = macAddress.replace(CharPool.PERIOD, CharPool.COLON);
 
@@ -560,17 +560,16 @@ public class LicenseUtil {
 		if (serverURL.startsWith(Http.HTTPS)) {
 			return StringUtil.read(inputStream);
 		}
-		else {
-			byte[] bytes = IOUtils.toByteArray(inputStream);
 
-			if ((bytes == null) || (bytes.length <= 0)) {
-				return null;
-			}
+		byte[] bytes = IOUtils.toByteArray(inputStream);
 
-			bytes = Encryptor.decryptUnencodedAsBytes(_symmetricKey, bytes);
-
-			return new String(bytes, StringPool.UTF8);
+		if ((bytes == null) || (bytes.length <= 0)) {
+			return null;
 		}
+
+		bytes = Encryptor.decryptUnencodedAsBytes(_symmetricKey, bytes);
+
+		return new String(bytes, StringPool.UTF8);
 	}
 
 	private static byte[] _encryptRequest(String serverURL, String request)
@@ -581,16 +580,15 @@ public class LicenseUtil {
 		if (serverURL.startsWith(Http.HTTPS)) {
 			return bytes;
 		}
-		else {
-			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-			bytes = Encryptor.encryptUnencoded(_symmetricKey, bytes);
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-			jsonObject.put("content", Base64.objectToString(bytes));
-			jsonObject.put("key", _encryptedSymmetricKey);
+		bytes = Encryptor.encryptUnencoded(_symmetricKey, bytes);
 
-			return jsonObject.toString().getBytes(StringPool.UTF8);
-		}
+		jsonObject.put("content", Base64.objectToString(bytes));
+		jsonObject.put("key", _encryptedSymmetricKey);
+
+		return jsonObject.toString().getBytes(StringPool.UTF8);
 	}
 
 	private static Map<String, String> _getOrderProducts(
@@ -704,7 +702,7 @@ public class LicenseUtil {
 	private static Set<String> _ipAddresses;
 	private static Set<String> _macAddresses;
 	private static Pattern _macAddressPattern1 = Pattern.compile(
-		"\\s((\\p{XDigit}{2}(-|:)){5}(\\p{XDigit}{2}))(?:\\s|$)");
+		"\\s((\\p{XDigit}{1,2}(-|:)){5}(\\p{XDigit}{1,2}))(?:\\s|$)");
 	private static Pattern _macAddressPattern2 = Pattern.compile(
 		"\\s((\\p{XDigit}{1,2}(\\.)){5}(\\p{XDigit}{1,2}))(?:\\s|$)");
 	private static MethodKey _registerOrderMethodKey = new MethodKey(

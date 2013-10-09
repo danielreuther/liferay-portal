@@ -470,15 +470,14 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 		if (_session != null) {
 			return _session.getId();
 		}
-		else {
-			HttpSession session = _request.getSession(false);
 
-			if (session == null) {
-				return StringPool.BLANK;
-			}
-			else {
-				return session.getId();
-			}
+		HttpSession session = _request.getSession(false);
+
+		if (session == null) {
+			return StringPool.BLANK;
+		}
+		else {
+			return session.getId();
 		}
 	}
 
@@ -589,27 +588,26 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 		if (_remoteUserId <= 0) {
 			return false;
 		}
-		else {
-			try {
-				long companyId = PortalUtil.getCompanyId(_request);
 
-				String roleLink = _portlet.getRoleMappers().get(role);
+		try {
+			long companyId = PortalUtil.getCompanyId(_request);
 
-				if (Validator.isNotNull(roleLink)) {
-					return RoleLocalServiceUtil.hasUserRole(
-						_remoteUserId, companyId, roleLink, true);
-				}
-				else {
-					return RoleLocalServiceUtil.hasUserRole(
-						_remoteUserId, companyId, role, true);
-				}
+			String roleLink = _portlet.getRoleMappers().get(role);
+
+			if (Validator.isNotNull(roleLink)) {
+				return RoleLocalServiceUtil.hasUserRole(
+					_remoteUserId, companyId, roleLink, true);
 			}
-			catch (Exception e) {
-				_log.error(e);
+			else {
+				return RoleLocalServiceUtil.hasUserRole(
+					_remoteUserId, companyId, role, true);
 			}
-
-			return _request.isUserInRole(role);
 		}
+		catch (Exception e) {
+			_log.error(e);
+		}
+
+		return _request.isUserInRole(role);
 	}
 
 	@Override
@@ -667,8 +665,6 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 
 		String portletNamespace = PortalUtil.getPortletNamespace(_portletName);
 
-		boolean portalSessionShared = false;
-
 		PortletApp portletApp = portlet.getPortletApp();
 
 		boolean warFile = portletApp.isWARFile();
@@ -698,11 +694,10 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 			}
 		}
 
-		if (warFile && !portlet.isPrivateSessionAttributes()) {
-			portalSessionShared = true;
+		if (warFile) {
+			request = new SharedSessionServletRequest(
+				request, !portlet.isPrivateSessionAttributes());
 		}
-
-		request = new SharedSessionServletRequest(request, portalSessionShared);
 
 		String dynamicQueryString = (String)request.getAttribute(
 			DynamicServletRequest.DYNAMIC_QUERY_STRING);
@@ -788,13 +783,24 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 					continue;
 				}
 
-				String realName = removePortletNamespace(
-					invokerPortlet, portletNamespace, name);
+				if ((invokerPortlet != null) &&
+					invokerPortlet.isFacesPortlet()) {
 
-				if (!realName.equals(name) ||
-					!portlet.isRequiresNamespacedParameters()) {
+					if (name.startsWith(portletNamespace) ||
+						!portlet.isRequiresNamespacedParameters()) {
 
-					dynamicRequest.setParameterValues(realName, values);
+						dynamicRequest.setParameterValues(name, values);
+					}
+				}
+				else {
+					String realName = removePortletNamespace(
+						portletNamespace, name);
+
+					if (!realName.equals(name) ||
+						!portlet.isRequiresNamespacedParameters()) {
+
+						dynamicRequest.setParameterValues(realName, values);
+					}
 				}
 			}
 		}
@@ -808,8 +814,11 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 				String name = entry.getKey();
 				String[] values = entry.getValue();
 
-				name = removePortletNamespace(
-					invokerPortlet, portletNamespace, name);
+				if ((invokerPortlet == null) ||
+					!invokerPortlet.isFacesPortlet()) {
+
+					name = removePortletNamespace(portletNamespace, name);
+				}
 
 				dynamicRequest.setParameterValues(name, values);
 			}
@@ -928,11 +937,9 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 	}
 
 	protected String removePortletNamespace(
-		InvokerPortlet invokerPortlet, String portletNamespace, String name) {
+		String portletNamespace, String name) {
 
-		if (name.startsWith(portletNamespace) &&
-			((invokerPortlet == null) || !invokerPortlet.isFacesPortlet())) {
-
+		if (name.startsWith(portletNamespace)) {
 			name = name.substring(portletNamespace.length());
 		}
 

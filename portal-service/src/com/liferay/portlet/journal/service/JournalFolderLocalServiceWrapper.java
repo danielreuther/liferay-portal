@@ -493,6 +493,14 @@ public class JournalFolderLocalServiceWrapper
 
 	@Override
 	public java.util.List<java.lang.Object> getFoldersAndArticles(
+		long groupId, long folderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.getFoldersAndArticles(groupId,
+			folderId, status);
+	}
+
+	@Override
+	public java.util.List<java.lang.Object> getFoldersAndArticles(
 		long groupId, long folderId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -513,6 +521,13 @@ public class JournalFolderLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalFolderLocalService.getFoldersAndArticlesCount(groupId,
 			folderId);
+	}
+
+	@Override
+	public int getFoldersAndArticlesCount(long groupId, long folderId,
+		int status) throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.getFoldersAndArticlesCount(groupId,
+			folderId, status);
 	}
 
 	@Override
@@ -568,6 +583,13 @@ public class JournalFolderLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _journalFolderLocalService.moveFolderToTrash(userId, folderId);
+	}
+
+	@Override
+	public void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_journalFolderLocalService.rebuildTree(companyId);
 	}
 
 	@Override

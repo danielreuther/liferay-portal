@@ -16,7 +16,6 @@ package com.liferay.portlet.portletconfiguration.action;
 
 import com.liferay.portal.NoSuchPortletItemException;
 import com.liferay.portal.PortletItemNameException;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
@@ -54,8 +53,6 @@ public class EditArchivedSetupsAction extends PortletAction {
 			ActionResponse actionResponse)
 		throws Exception {
 
-		actionRequest = ActionUtil.getWrappedActionRequest(actionRequest, null);
-
 		Portlet portlet = null;
 
 		try {
@@ -67,6 +64,8 @@ public class EditArchivedSetupsAction extends PortletAction {
 
 			setForward(actionRequest, "portlet.portlet_configuration.error");
 		}
+
+		actionRequest = ActionUtil.getWrappedActionRequest(actionRequest, null);
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
@@ -104,21 +103,18 @@ public class EditArchivedSetupsAction extends PortletAction {
 			return;
 		}
 
-		LiferayPortletConfig liferayPortletConfig =
-			(LiferayPortletConfig)portletConfig;
-
 		String portletResource = ParamUtil.getString(
 			actionRequest, "portletResource");
 
 		SessionMessages.add(
 			actionRequest,
-			liferayPortletConfig.getPortletId() +
+			PortalUtil.getPortletId(actionRequest) +
 				SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 			portletResource);
 
 		SessionMessages.add(
 			actionRequest,
-			liferayPortletConfig.getPortletId() +
+			PortalUtil.getPortletId(actionRequest) +
 				SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 
 		String redirect = PortalUtil.escapeRedirect(
@@ -136,8 +132,6 @@ public class EditArchivedSetupsAction extends PortletAction {
 			RenderResponse renderResponse)
 		throws Exception {
 
-		renderRequest = ActionUtil.getWrappedRenderRequest(renderRequest, null);
-
 		Portlet portlet = null;
 
 		try {
@@ -150,6 +144,8 @@ public class EditArchivedSetupsAction extends PortletAction {
 			return actionMapping.findForward(
 				"portlet.portlet_configuration.error");
 		}
+
+		renderRequest = ActionUtil.getWrappedRenderRequest(renderRequest, null);
 
 		renderResponse.setTitle(ActionUtil.getTitle(portlet, renderRequest));
 

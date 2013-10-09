@@ -38,15 +38,15 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem");
 		</c:if>
 	</aui:nav>
 
-	<div class="navbar-search pull-right">
+	<aui:nav-bar-search cssClass="pull-right">
 		<div class="form-search">
 			<liferay-portlet:renderURL varImpl="searchURL">
-				<portlet:param name="struts_action" value="/document_library/view_file_entry_type" />
+				<portlet:param name="struts_action" value="<%= strutsAction %>" />
 			</liferay-portlet:renderURL>
 
 			<aui:form action="<%= searchURL.toString() %>" method="post" name="fm">
 				<liferay-ui:input-search />
 			</aui:form>
 		</div>
-	</div>
+	</aui:nav-bar-search>
 </aui:nav-bar>

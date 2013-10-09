@@ -42,7 +42,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil_IW;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.kernel.util.Randomizer_IW;
 import com.liferay.portal.kernel.util.StaticFieldGetter;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil_IW;
@@ -131,8 +130,11 @@ public class TemplateContextHelper {
 			templateHandler.getTemplateVariableGroups(
 				classPK, language, locale);
 
+		String[] restrictedVariables = templateHandler.getRestrictedVariables(
+			language);
+
 		TemplateVariableGroup portalServicesTemplateVariableGroup =
-			new TemplateVariableGroup("portal-services");
+			new TemplateVariableGroup("portal-services", restrictedVariables);
 
 		portalServicesTemplateVariableGroup.setAutocompleteEnabled(false);
 
@@ -347,6 +349,12 @@ public class TemplateContextHelper {
 
 	public void removeHelperUtilities(ClassLoader classLoader) {
 		_helperUtilitiesMaps.remove(classLoader);
+	}
+
+	public static interface PACL {
+
+		public TemplateControlContext getTemplateControlContext();
+
 	}
 
 	protected void populateCommonHelperUtilities(
@@ -610,16 +618,6 @@ public class TemplateContextHelper {
 			_log.error(se, se);
 		}
 
-		// Randomizer
-
-		try {
-			variables.put(
-				"randomizer", Randomizer_IW.getInstance().getWrappedInstance());
-		}
-		catch (SecurityException se) {
-			_log.error(se, se);
-		}
-
 		try {
 			UtilLocator utilLocator = UtilLocator.getInstance();
 
@@ -793,6 +791,13 @@ public class TemplateContextHelper {
 
 		// Deprecated
 
+		populateDeprecatedCommonHelperUtilities(variables);
+	}
+
+	@SuppressWarnings("deprecation")
+	protected void populateDeprecatedCommonHelperUtilities(
+		Map<String, Object> variables) {
+
 		try {
 			variables.put(
 				"dateFormats",
@@ -815,6 +820,16 @@ public class TemplateContextHelper {
 			variables.put(
 				"locationPermission",
 				OrganizationPermissionUtil.getOrganizationPermission());
+		}
+		catch (SecurityException se) {
+			_log.error(se, se);
+		}
+
+		try {
+			com.liferay.portal.kernel.util.Randomizer_IW randomizer =
+				com.liferay.portal.kernel.util.Randomizer_IW.getInstance();
+
+			variables.put("randomizer", randomizer.getWrappedInstance());
 		}
 		catch (SecurityException se) {
 			_log.error(se, se);
@@ -873,12 +888,6 @@ public class TemplateContextHelper {
 
 			return new TemplateControlContext(null, contextClassLoader);
 		}
-
-	}
-
-	public static interface PACL {
-
-		public TemplateControlContext getTemplateControlContext();
 
 	}
 

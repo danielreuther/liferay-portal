@@ -204,15 +204,7 @@ public class WebDriverToSeleniumBridge
 				webElement.click();
 			}
 			catch (Exception e) {
-				WrapsDriver wrapsDriver = (WrapsDriver)webElement;
-
-				WebDriver webDriver = wrapsDriver.getWrappedDriver();
-
-				JavascriptExecutor javascriptExecutor =
-					(JavascriptExecutor)webDriver;
-
-				javascriptExecutor.executeScript(
-					"arguments[0].scrollIntoView();", webElement);
+				scrollWebElementIntoView(webElement);
 
 				webElement.click();
 			}
@@ -253,15 +245,7 @@ public class WebDriverToSeleniumBridge
 					webElement.click();
 				}
 				catch (Exception e) {
-					WrapsDriver wrapsDriver = (WrapsDriver)webElement;
-
-					WebDriver webDriver = wrapsDriver.getWrappedDriver();
-
-					JavascriptExecutor javascriptExecutor =
-						(JavascriptExecutor)webDriver;
-
-					javascriptExecutor.executeScript(
-						"arguments[0].scrollIntoView();", webElement);
+					scrollWebElementIntoView(webElement);
 
 					webElement.click();
 				}
@@ -727,15 +711,18 @@ public class WebDriverToSeleniumBridge
 		if (locator.contains("x:")) {
 			return getHtmlNodeText(locator);
 		}
-		else {
-			WebElement webElement = getWebElement(locator, timeout);
 
-			String text = webElement.getText();
+		WebElement webElement = getWebElement(locator, timeout);
 
-			text = text.trim();
-
-			return text.replace("\n", " ");
+		if (!webElement.isDisplayed()) {
+			scrollWebElementIntoView(webElement);
 		}
+
+		String text = webElement.getText();
+
+		text = text.trim();
+
+		return text.replace("\n", " ");
 	}
 
 	@Override
@@ -750,6 +737,10 @@ public class WebDriverToSeleniumBridge
 
 	public String getValue(String locator, String timeout) {
 		WebElement webElement = getWebElement(locator, timeout);
+
+		if (!webElement.isDisplayed()) {
+			scrollWebElementIntoView(webElement);
+		}
 
 		return webElement.getAttribute("value");
 	}
@@ -798,6 +789,10 @@ public class WebDriverToSeleniumBridge
 	@Override
 	public boolean isChecked(String locator) {
 		WebElement webElement = getWebElement(locator, "1");
+
+		if (!webElement.isDisplayed()) {
+			scrollWebElementIntoView(webElement);
+		}
 
 		return webElement.isSelected();
 	}
@@ -851,6 +846,10 @@ public class WebDriverToSeleniumBridge
 	@Override
 	public boolean isVisible(String locator) {
 		WebElement webElement = getWebElement(locator, "1");
+
+		if (!webElement.isDisplayed()) {
+			scrollWebElementIntoView(webElement);
+		}
 
 		return webElement.isDisplayed();
 	}
@@ -1755,6 +1754,17 @@ public class WebDriverToSeleniumBridge
 		_keysSpecialChars.put(">", ".");
 		_keysSpecialChars.put("(", "9");
 		_keysSpecialChars.put(")", "0");
+	}
+
+	protected void scrollWebElementIntoView(WebElement webElement) {
+		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
+
+		WebDriver webDriver = wrapsDriver.getWrappedDriver();
+
+		JavascriptExecutor javascriptExecutor = (JavascriptExecutor)webDriver;
+
+		javascriptExecutor.executeScript(
+			"arguments[0].scrollIntoView();", webElement);
 	}
 
 	protected void selectByLabel(String selectLocator, String label) {

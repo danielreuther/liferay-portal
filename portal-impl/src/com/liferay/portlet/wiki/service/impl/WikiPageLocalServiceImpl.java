@@ -795,16 +795,15 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		if (!pages.isEmpty()) {
 			return pages.get(0);
 		}
-		else {
-			pages = wikiPagePersistence.findByN_T_S(
-				nodeId, title, WorkflowConstants.STATUS_PENDING, 0, 1);
 
-			if (!pages.isEmpty()) {
-				return pages.get(0);
-			}
-			else {
-				throw new NoSuchPageException();
-			}
+		pages = wikiPagePersistence.findByN_T_S(
+			nodeId, title, WorkflowConstants.STATUS_PENDING, 0, 1);
+
+		if (!pages.isEmpty()) {
+			return pages.get(0);
+		}
+		else {
+			throw new NoSuchPageException();
 		}
 	}
 
@@ -1285,7 +1284,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// Check if the new title already exists
 
-		if (title.equalsIgnoreCase(newTitle)) {
+		if (StringUtil.equalsIgnoreCase(title, newTitle)) {
 			throw new DuplicatePageException(newTitle);
 		}
 
@@ -1933,6 +1932,8 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		page.setStatusByUserName(user.getFullName());
 		page.setStatusDate(now);
 
+		wikiPagePersistence.update(page);
+
 		if (status == WorkflowConstants.STATUS_APPROVED) {
 
 			// Asset
@@ -2047,8 +2048,8 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 			trashEntryLocalService.addTrashEntry(
 				userId, page.getGroupId(), WikiPage.class.getName(),
-				page.getResourcePrimKey(), oldStatus, null,
-				typeSettingsProperties);
+				page.getResourcePrimKey(), page.getUuid(), null, oldStatus,
+				null, typeSettingsProperties);
 
 			// Indexer
 
@@ -2254,7 +2255,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		Map<String, Boolean> links = WikiCacheUtil.getOutgoingLinks(page);
 
-		Boolean link = links.get(targetTitle.toLowerCase());
+		Boolean link = links.get(StringUtil.toLowerCase(targetTitle));
 
 		if (link != null) {
 			return true;

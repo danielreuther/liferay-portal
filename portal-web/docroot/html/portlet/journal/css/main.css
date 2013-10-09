@@ -5,10 +5,6 @@
 }
 
 .portlet-journal {
-	.display-style-buttons-container {
-		margin-right: 10px;
-	}
-
 	.expand-folder-container {
 		position: absolute;
 		right: 0;
@@ -120,12 +116,6 @@
 		border-width: 1px 0;
 		margin: 0 0 1em;
 		padding: 1em;
-	}
-
-	.subscribe-link {
-		float: right;
-		margin-bottom: 1em;
-		margin-top: 2em;
 	}
 
 	.lfr-panel-basic {
@@ -388,6 +378,7 @@
 	}
 
 	.lfr-header-row-content {
+		padding-left: 0;
 		padding-top: 0;
 	}
 

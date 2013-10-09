@@ -32,7 +32,9 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
@@ -43,8 +45,6 @@ import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFolderActionableDynamicQuery;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
@@ -125,6 +125,10 @@ public class DLFolderIndexer extends BaseIndexer {
 		document.addKeyword(
 			Field.HIDDEN, (dlFolder.isHidden() || dlFolder.isInHiddenFolder()));
 		document.addText(Field.TITLE, dlFolder.getName());
+		document.addKeyword(Field.TREE_PATH, dlFolder.getTreePath());
+		document.addKeyword(
+			Field.TREE_PATH,
+			StringUtil.split(dlFolder.getTreePath(), CharPool.SLASH));
 
 		if (!dlFolder.isInTrash() && dlFolder.isInTrashContainer()) {
 			DLFolder trashedFolder = dlFolder.getTrashContainer();
@@ -218,8 +222,6 @@ public class DLFolderIndexer extends BaseIndexer {
 	protected void reindexFolders(final long companyId)
 		throws PortalException, SystemException {
 
-		final Collection<Document> documents = new ArrayList<Document>();
-
 		ActionableDynamicQuery actionableDynamicQuery =
 			new DLFolderActionableDynamicQuery() {
 
@@ -237,18 +239,16 @@ public class DLFolderIndexer extends BaseIndexer {
 				Document document = getDocument(dlFolder);
 
 				if (document != null) {
-					documents.add(document);
+					addDocument(document);
 				}
 			}
 
 		};
 
 		actionableDynamicQuery.setCompanyId(companyId);
+		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
 		actionableDynamicQuery.performActions();
-
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(DLFolderIndexer.class);

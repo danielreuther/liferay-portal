@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.net.URL;
@@ -61,6 +62,12 @@ public class PortalSocketPermission {
 		checkConnect(domain, port, protocol);
 	}
 
+	public static interface PACL {
+
+		public void checkPermission(String host, String action);
+
+	}
+
 	private static void checkConnect(String domain, int port, String protocol) {
 		if (Validator.isNull(domain) ||
 			(!protocol.startsWith(Http.HTTPS) &&
@@ -70,7 +77,7 @@ public class PortalSocketPermission {
 		}
 
 		if (port == -1) {
-			protocol = protocol.toLowerCase();
+			protocol = StringUtil.toLowerCase(protocol);
 
 			if (protocol.startsWith(Http.HTTPS)) {
 				port = Http.HTTPS_PORT;
@@ -93,12 +100,6 @@ public class PortalSocketPermission {
 		@Override
 		public void checkPermission(String host, String action) {
 		}
-
-	}
-
-	public static interface PACL {
-
-		public void checkPermission(String host, String action);
 
 	}
 

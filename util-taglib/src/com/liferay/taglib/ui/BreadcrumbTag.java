@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Account;
@@ -344,7 +345,7 @@ public class BreadcrumbTag extends IncludeTag {
 		_showCurrentPortlet = true;
 		_showGuestGroup = _SHOW_GUEST_GROUP;
 		_showLayout = true;
-		_showParentGroups = _SHOW_PARENT_GROUPS;
+		_showParentGroups = null;
 		_showPortletBreadcrumb = true;
 	}
 
@@ -421,18 +422,46 @@ public class BreadcrumbTag extends IncludeTag {
 			return StringPool.BLANK;
 		}
 
+		String breadcrumbTruncateClass = StringPool.BLANK;
+
+		String[] breadcrumbArray = breadcrumbString.split("<li", -1);
+
+		boolean breadcrumbTruncate = false;
+
+		if (breadcrumbArray.length > 3) {
+			breadcrumbTruncate = true;
+		}
+
+		if (breadcrumbTruncate) {
+			breadcrumbTruncateClass = " breadcrumb-truncate";
+		}
+
 		int x = breadcrumbString.indexOf("<li") + 3;
 		int y = breadcrumbString.lastIndexOf("<li") + 3;
 
 		if (x == y) {
 			breadcrumbString = StringUtil.insert(
-				breadcrumbString, " class=\"active only\"", x);
+				breadcrumbString,
+				" class=\"active only" + breadcrumbTruncateClass + "\"", x);
 		}
 		else {
 			breadcrumbString = StringUtil.insert(
-				breadcrumbString, " class=\"active last\"", y);
+				breadcrumbString,
+				" class=\"active last" + breadcrumbTruncateClass + "\"", y);
+
 			breadcrumbString = StringUtil.insert(
-				breadcrumbString, " class=\"first\"", x);
+				breadcrumbString,
+				" class=\"first" + breadcrumbTruncateClass + "\"", x);
+		}
+
+		if (breadcrumbTruncate) {
+			y = breadcrumbString.lastIndexOf("<li");
+
+			int z = breadcrumbString.lastIndexOf("<li", y - 1) + 3;
+
+			breadcrumbString = StringUtil.insert(
+				breadcrumbString,
+				" class=\"current-parent" + breadcrumbTruncateClass + "\"", z);
 		}
 
 		return breadcrumbString;
@@ -443,8 +472,38 @@ public class BreadcrumbTag extends IncludeTag {
 		return _PAGE;
 	}
 
+	protected void initShowParentGroups(HttpServletRequest request) {
+		if (_showParentGroups != null) {
+			return;
+		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		try {
+			if (Validator.isNull(_selLayout)) {
+				setSelLayout(themeDisplay.getLayout());
+			}
+
+			Group group = _selLayout.getGroup();
+
+			UnicodeProperties typeSettingsProperties =
+				group.getTypeSettingsProperties();
+
+			_showParentGroups = GetterUtil.getBoolean(
+				typeSettingsProperties.getProperty(
+					"breadcrumbShowParentGroups"),
+				_SHOW_PARENT_GROUPS);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+	}
+
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
+		initShowParentGroups(request);
+
 		request.setAttribute(
 			"liferay-ui:breadcrumb:breadcrumbString",
 			getBreadcrumbString(request));
@@ -488,7 +547,7 @@ public class BreadcrumbTag extends IncludeTag {
 	private boolean _showCurrentPortlet = true;
 	private boolean _showGuestGroup = _SHOW_GUEST_GROUP;
 	private boolean _showLayout = true;
-	private boolean _showParentGroups = _SHOW_PARENT_GROUPS;
+	private Boolean _showParentGroups = null;
 	private boolean _showPortletBreadcrumb = true;
 
 }

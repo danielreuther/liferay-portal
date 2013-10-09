@@ -570,6 +570,42 @@ public class LayoutTypePortletImpl
 	}
 
 	@Override
+	public boolean hasPortletId(String portletId, boolean strict)
+		throws PortalException, SystemException {
+
+		List<String> columns = getColumns();
+
+		for (String columnId : columns) {
+			if (hasNonstaticPortletId(columnId, portletId)) {
+				return true;
+			}
+
+			if (hasStaticPortletId(columnId, portletId)) {
+				return true;
+			}
+		}
+
+		Layout layout = getLayout();
+
+		if (layout.isTypeControlPanel()) {
+			return false;
+		}
+
+		if (!strict &&
+			((PortletPreferencesLocalServiceUtil.getPortletPreferencesCount(
+				PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid(),
+				portletId) > 0) ||
+			 (PortletPreferencesLocalServiceUtil.getPortletPreferencesCount(
+				PortletKeys.PREFS_OWNER_TYPE_USER, layout.getPlid(),
+				portletId) > 0))) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public boolean hasStateMax() {
 		String[] stateMax = StringUtil.split(getStateMax());
 
@@ -628,6 +664,21 @@ public class LayoutTypePortletImpl
 	@Override
 	public boolean hasUpdatePermission() {
 		return _updatePermission;
+	}
+
+	@Override
+	public boolean isCacheable() throws PortalException, SystemException {
+		for (String columnId : getColumns()) {
+			for (Portlet portlet : getAllPortlets(columnId)) {
+				Portlet rootPortlet = portlet.getRootPortlet();
+
+				if (!rootPortlet.isLayoutCacheable()) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	@Override
@@ -1650,41 +1701,6 @@ public class LayoutTypePortletImpl
 
 				return true;
 			}
-		}
-
-		return false;
-	}
-
-	protected boolean hasPortletId(String portletId, boolean strict)
-		throws PortalException, SystemException {
-
-		List<String> columns = getColumns();
-
-		for (String columnId : columns) {
-			if (hasNonstaticPortletId(columnId, portletId)) {
-				return true;
-			}
-
-			if (hasStaticPortletId(columnId, portletId)) {
-				return true;
-			}
-		}
-
-		Layout layout = getLayout();
-
-		if (layout.isTypeControlPanel()) {
-			return false;
-		}
-
-		if (!strict &&
-			((PortletPreferencesLocalServiceUtil.getPortletPreferencesCount(
-				PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid(),
-				portletId) > 0) ||
-			 (PortletPreferencesLocalServiceUtil.getPortletPreferencesCount(
-				PortletKeys.PREFS_OWNER_TYPE_USER, layout.getPlid(),
-				portletId) > 0))) {
-
-			return true;
 		}
 
 		return false;

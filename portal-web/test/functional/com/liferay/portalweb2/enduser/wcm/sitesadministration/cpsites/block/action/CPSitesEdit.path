@@ -34,6 +34,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SITE_ID</td>
+	<td>//div[@class='control-group field-wrapper']/input</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONFIRMATION</td>
 	<td></td>
 	<td></td>
@@ -47,6 +52,17 @@
 <tr>
 	<td>MEMBERSHIP_OPTIONS_MEMBERSHIP_MANAGEMENT_CHECKBOX</td>
 	<td>//input[@id='_165_manualMembershipCheckbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--PARENT_SITE-->
+<tr>
+	<td>PARENT_SITE_LIMIT_MEMBERSHIP_CHECKBOX</td>
+	<td>//input[@id='_165_membershipRestrictionCheckbox']</td>
 	<td></td>
 </tr>
 <tr>

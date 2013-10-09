@@ -196,7 +196,7 @@ if (selUser != null) {
 
 <portlet:renderURL var="editUserRenderURL">
 	<portlet:param name="struts_action" value="/users_admin/edit_user" />
-	<portlet:param name="backURL" value="<%= backURL %>"></portlet:param>
+	<portlet:param name="backURL" value="<%= backURL %>" />
 </portlet:renderURL>
 
 <aui:form action="<%= editUserActionURL %>" method="post" name="fm">
@@ -282,6 +282,12 @@ if (selUser != null) {
 	function <portlet:namespace />createURL(href, value, onclick) {
 		return '<a href="' + href + '"' + (onclick ? ' onclick="' + onclick + '" ' : '') + '>' + value + '</a>';
 	};
+
+	function <portlet:namespace />saveUser(cmd) {
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = cmd;
+
+		submitForm(document.<portlet:namespace />fm);
+	}
 </aui:script>
 
 <%!

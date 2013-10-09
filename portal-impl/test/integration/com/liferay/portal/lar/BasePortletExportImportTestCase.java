@@ -64,7 +64,7 @@ public class BasePortletExportImportTestCase extends BaseExportImportTestCase {
 		return null;
 	}
 
-	public String getPortletId() {
+	public String getPortletId() throws Exception {
 		return null;
 	}
 
@@ -249,8 +249,7 @@ public class BasePortletExportImportTestCase extends BaseExportImportTestCase {
 
 		exportImportPortlet(portletId);
 
-		return LayoutTestUtil.getPortletPreferences(
-			importedLayout.getCompanyId(), importedLayout.getPlid(), portletId);
+		return LayoutTestUtil.getPortletPreferences(importedLayout, portletId);
 	}
 
 	protected void testExportImportAvailableLocales(

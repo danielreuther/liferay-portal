@@ -339,6 +339,8 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 									<ul class="portlet-list">
 										<aui:input name="<%= PortletDataHandlerKeys.PORTLET_DATA_CONTROL_DEFAULT %>" type="hidden" value="<%= true %>" />
 
+										<aui:input name="<%= PortletDataHandlerKeys.PORTLET_DATA %>" type="hidden" value="<%= true %>" />
+
 										<aui:input helpMessage="export-import-categories-help" label="categories" name="<%= PortletDataHandlerKeys.CATEGORIES %>" type="checkbox" value="<%= true %>" />
 
 										<%
@@ -558,7 +560,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 </aui:script>
 
 <aui:script use="aui-base">
-	A.one(<portlet:namespace />continue).on(
+	A.one('#<portlet:namespace />continue').on(
 		'click',
 		function() {
 			A.one('#<portlet:namespace />importConfiguration').hide()
@@ -566,7 +568,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 		}
 	);
 
-	A.one(<portlet:namespace />back).on(
+	A.one('#<portlet:namespace />back').on(
 		'click',
 		function() {
 			A.one('#<portlet:namespace />importConfiguration').show()

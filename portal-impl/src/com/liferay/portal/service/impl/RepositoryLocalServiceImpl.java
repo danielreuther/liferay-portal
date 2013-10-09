@@ -45,7 +45,6 @@ import com.liferay.portal.repository.util.RepositoryFactoryUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.RepositoryLocalServiceBaseImpl;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.RepositoryNameException;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 
@@ -165,32 +164,31 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 			repositoryId);
 
 		if (repository != null) {
-			SystemEventHierarchyEntryThreadLocal.push(
-				Repository.class, repositoryId);
+			SystemEventHierarchyEntryThreadLocal.push(Repository.class);
 
 			try {
 				expandoValueLocalService.deleteValues(
 					Repository.class.getName(), repositoryId);
 
-				try {
-					dlFolderLocalService.deleteFolder(
-						repository.getDlFolderId());
-				}
-				catch (NoSuchFolderException nsfe) {
+				DLFolder dlFolder = dlFolderLocalService.fetchDLFolder(
+					repository.getDlFolderId());
+
+				if (dlFolder != null) {
+					dlFolderLocalService.deleteDLFolder(dlFolder);
 				}
 
 				repositoryPersistence.remove(repository);
 
 				repositoryEntryPersistence.removeByRepositoryId(repositoryId);
-
-				systemEventLocalService.addSystemEvent(
-					0, repository.getGroupId(), Repository.class.getName(),
-					repositoryId, repository.getUuid(), null,
-					SystemEventConstants.TYPE_DELETE, StringPool.BLANK);
 			}
 			finally {
-				SystemEventHierarchyEntryThreadLocal.pop();
+				SystemEventHierarchyEntryThreadLocal.pop(Repository.class);
 			}
+
+			systemEventLocalService.addSystemEvent(
+				0, repository.getGroupId(), Repository.class.getName(),
+				repositoryId, repository.getUuid(), null,
+				SystemEventConstants.TYPE_DELETE, StringPool.BLANK);
 		}
 
 		return repository;

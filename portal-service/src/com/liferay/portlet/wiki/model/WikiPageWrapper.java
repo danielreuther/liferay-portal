@@ -768,6 +768,60 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	}
 
 	/**
+	* Returns the trash entry created when this wiki page was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this wiki page.
+	*
+	* @return the trash entry created when this wiki page was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPage.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this wiki page.
+	*
+	* @return the class primary key of the trash entry for this wiki page
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _wikiPage.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this wiki page.
+	*
+	* @return the trash handler for this wiki page
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _wikiPage.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this wiki page is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this wiki page is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _wikiPage.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this wiki page is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this wiki page is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _wikiPage.isInTrashContainer();
+	}
+
+	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
 	@Override
@@ -833,16 +887,6 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	@Override
 	public boolean isIncomplete() {
 		return _wikiPage.isIncomplete();
-	}
-
-	/**
-	* Returns <code>true</code> if this wiki page is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this wiki page is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _wikiPage.isInTrash();
 	}
 
 	/**
@@ -1052,11 +1096,6 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	}
 
 	@Override
-	public com.liferay.portlet.wiki.model.WikiNode getTrashContainer() {
-		return _wikiPage.getTrashContainer();
-	}
-
-	@Override
 	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getViewableChildPages() {
 		return _wikiPage.getViewableChildPages();
 	}
@@ -1069,11 +1108,6 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	@Override
 	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getViewableParentPages() {
 		return _wikiPage.getViewableParentPages();
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		return _wikiPage.isInTrashContainer();
 	}
 
 	@Override

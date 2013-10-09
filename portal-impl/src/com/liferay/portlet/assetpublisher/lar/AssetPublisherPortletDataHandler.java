@@ -24,11 +24,11 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.Portlet;
+import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
@@ -63,11 +63,11 @@ public class AssetPublisherPortletDataHandler
 	@Override
 	protected PortletPreferences doProcessExportPortletPreferences(
 			PortletDataContext portletDataContext, String portletId,
-			PortletPreferences portletPreferences, Element rootElement)
+			PortletPreferences portletPreferences)
 		throws Exception {
 
 		return updateExportPortletPreferences(
-			portletDataContext, portletId, portletPreferences, rootElement);
+			portletDataContext, portletId, portletPreferences);
 	}
 
 	@Override
@@ -124,7 +124,7 @@ public class AssetPublisherPortletDataHandler
 
 	protected PortletPreferences updateExportPortletPreferences(
 			PortletDataContext portletDataContext, String portletId,
-			PortletPreferences portletPreferences, Element rootElement)
+			PortletPreferences portletPreferences)
 		throws Exception {
 
 		String anyAssetTypeClassName = StringPool.BLANK;
@@ -160,7 +160,8 @@ public class AssetPublisherPortletDataHandler
 
 				ExportImportHelperUtil.updateExportPortletPreferencesClassPKs(
 					portletDataContext, portlet, portletPreferences, name,
-					DLFileEntryType.class.getName(), rootElement);
+					DLFileEntryType.class.getName(),
+					portletDataContext.getExportDataRootElement());
 			}
 			else if (name.equals(
 						"anyClassTypeJournalArticleAssetRendererFactory") ||
@@ -172,22 +173,24 @@ public class AssetPublisherPortletDataHandler
 
 				ExportImportHelperUtil.updateExportPortletPreferencesClassPKs(
 					portletDataContext, portlet, portletPreferences, name,
-					DDMStructure.class.getName(), rootElement);
+					DDMStructure.class.getName(),
+					portletDataContext.getExportDataRootElement());
 			}
 			else if (name.equals("assetVocabularyId")) {
 				ExportImportHelperUtil.updateExportPortletPreferencesClassPKs(
 					portletDataContext, portlet, portletPreferences, name,
-					AssetVocabulary.class.getName(), rootElement);
+					AssetVocabulary.class.getName(),
+					portletDataContext.getExportDataRootElement());
 			}
 			else if (name.startsWith("queryName") &&
-					 value.equalsIgnoreCase("assetCategories")) {
+					 StringUtil.equalsIgnoreCase(value, "assetCategories")) {
 
 				String index = name.substring(9);
 
 				ExportImportHelperUtil.updateExportPortletPreferencesClassPKs(
 					portletDataContext, portlet, portletPreferences,
 					"queryValues" + index, AssetCategory.class.getName(),
-					rootElement);
+					portletDataContext.getExportDataRootElement());
 			}
 			else if (name.equals("scopeIds")) {
 				updateExportScopeIds(
@@ -346,7 +349,7 @@ public class AssetPublisherPortletDataHandler
 					AssetVocabulary.class, companyGroup.getGroupId());
 			}
 			else if (name.startsWith("queryName") &&
-					 value.equalsIgnoreCase("assetCategories")) {
+					 StringUtil.equalsIgnoreCase(value, "assetCategories")) {
 
 				String index = name.substring(9, name.length());
 
@@ -400,8 +403,16 @@ public class AssetPublisherPortletDataHandler
 			catch (NoSuchGroupException nsge) {
 				if (_log.isInfoEnabled()) {
 					_log.info(
-						"Ignoring scope " + newValue + "because the " +
+						"Ignoring scope " + newValue + " because the " +
 							"referenced group was not found");
+				}
+			}
+			catch (PrincipalException pe) {
+				if (_log.isInfoEnabled()) {
+					_log.info(
+						"Ignoring scope " + newValue + " because the " +
+							"referenced parent group no longer allows " +
+								"sharing content with child sites");
 				}
 			}
 		}

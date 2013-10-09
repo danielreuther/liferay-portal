@@ -645,6 +645,20 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
+	 * Returns the servlet context name of the portlet.
+	 *
+	 * @return the servlet context name of the portlet
+	 */
+	@Override
+	public String getContextName() {
+		if (!_portletApp.isWARFile()) {
+			return PortalUtil.getServletContextName();
+		}
+
+		return _portletApp.getServletContextName();
+	}
+
+	/**
 	 * Returns the servlet context path of the portlet.
 	 *
 	 * @return the servlet context path of the portlet
@@ -1013,7 +1027,7 @@ public class PortletImpl extends PortletBaseImpl {
 	@Override
 	public List<Indexer> getIndexerInstances() {
 		if (_indexerClasses.isEmpty() &&
-			!_portletClass.equals(AlloyPortlet.class.getName())) {
+			!_portletClass.contains(AlloyPortlet.class.getSimpleName())) {
 
 			return Collections.emptyList();
 		}
@@ -2226,7 +2240,7 @@ public class PortletImpl extends PortletBaseImpl {
 		}
 
 		for (int i = 0; i < _rolesArray.length; i++) {
-			if (_rolesArray[i].equalsIgnoreCase(roleName)) {
+			if (StringUtil.equalsIgnoreCase(_rolesArray[i], roleName)) {
 				return true;
 			}
 		}

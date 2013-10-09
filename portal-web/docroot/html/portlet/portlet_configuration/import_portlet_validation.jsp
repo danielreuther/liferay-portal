@@ -60,7 +60,7 @@ Layout exportableLayout = ExportImportHelperUtil.getExportableLayout(themeDispla
 					method: Liferay.Service.bind('/layout/get-temp-file-entry-names'),
 					params: {
 						groupId: <%= scopeGroupId %>,
-						tempFolderName: '<%= ExportImportHelper.TEMP_FOLDER_NAME + selPortlet.getPortletId() %>'
+						tempFolderName: '<%= HtmlUtil.escapeJS(ExportImportHelper.TEMP_FOLDER_NAME + selPortlet.getPortletId()) %>'
 					}
 				},
 				uploadFile: '<liferay-portlet:actionURL doAsUserId="<%= user.getUserId() %>"><portlet:param name="struts_action" value="/portlet_configuration/export_import" /><portlet:param name="<%= Constants.CMD %>" value="<%= Constants.ADD_TEMP %>" /><portlet:param name="redirect" value="<%= redirect %>" /><portlet:param name="plid" value="<%= String.valueOf(exportableLayout.getPlid()) %>" /><portlet:param name="groupId" value="<%= String.valueOf(themeDisplay.getScopeGroupId()) %>" /><portlet:param name="portletResource" value="<%= portletResource %>" /></liferay-portlet:actionURL>&ticketKey=<%= ticket.getKey() %><liferay-ui:input-permissions-params modelName="<%= Group.class.getName() %>" />'
@@ -108,6 +108,7 @@ Layout exportableLayout = ExportImportHelperUtil.getExportableLayout(themeDispla
 				<portlet:param name="struts_action" value="/portlet_configuration/export_import" />
 				<portlet:param name="redirect" value="<%= redirect %>" />
 				<portlet:param name="portletResource" value="<%= portletResource %>" />
+				<portlet:param name="groupId" value="<%= String.valueOf(scopeGroupId) %>" />
 				<portlet:param name="validate" value="<%= String.valueOf(Boolean.FALSE) %>" />
 			</liferay-portlet:resourceURL>
 

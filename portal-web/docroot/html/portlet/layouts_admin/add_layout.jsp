@@ -16,16 +16,13 @@
 
 <%@ include file="/html/portlet/layouts_admin/init.jsp" %>
 
-<%
-Layout selLayout = null;
+<%@ include file="/html/portlet/layouts_admin/init_attributes.jspf" %>
 
-boolean privateLayout = false;
+<%
 long parentPlid = LayoutConstants.DEFAULT_PLID;
 long parentLayoutId = LayoutConstants.DEFAULT_PARENT_LAYOUT_ID;
 
 if (layout.isTypeControlPanel()) {
-	long selPlid = ParamUtil.getLong(liferayPortletRequest, "selPlid");
-
 	if (selPlid != 0) {
 		selLayout = LayoutLocalServiceUtil.getLayout(selPlid);
 
@@ -34,7 +31,7 @@ if (layout.isTypeControlPanel()) {
 		parentLayoutId = selLayout.getLayoutId();
 	}
 	else {
-	 	privateLayout = GetterUtil.getBoolean(request.getAttribute("edit_pages.jsp-privateLayout"));
+		privateLayout = GetterUtil.getBoolean(request.getAttribute("edit_pages.jsp-privateLayout"));
 	}
 }
 else {
@@ -44,17 +41,7 @@ else {
 	parentPlid = layout.getParentPlid();
 	parentLayoutId = layout.getParentLayoutId();
 }
-
-Group liveGroup = GroupLocalServiceUtil.getGroup(scopeGroupId);
-
-if (liveGroup.isStagingGroup()) {
-	liveGroup = liveGroup.getLiveGroup();
-}
-
-String rootNodeName = liveGroup.getLayoutRootNodeName(privateLayout, locale);
 %>
-
-<aui:model-context model="<%= Layout.class %>" />
 
 <portlet:actionURL var="editLayoutActionURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
 	<portlet:param name="struts_action" value="/layouts_admin/edit_layouts" />
@@ -67,13 +54,45 @@ String rootNodeName = liveGroup.getLayoutRootNodeName(privateLayout, locale);
 <aui:form action="<%= editLayoutActionURL %>" enctype="multipart/form-data" method="post" name="addPageFm" onSubmit="event.preventDefault()">
 	<aui:input id="addLayoutCMD" name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.ADD %>" />
 	<aui:input id="addLayoutRedirect" name="redirect" type="hidden" value="<%= layout.isTypeControlPanel() ? currentURL : editLayoutRenderURL.toString() %>" />
-	<aui:input id="addLayoutGroupId" name="groupId" type="hidden" value="<%= scopeGroupId %>" />
+	<aui:input id="addLayoutGroupId" name="groupId" type="hidden" value="<%= groupId %>" />
 	<aui:input id="addLayoutPrivateLayout" name="privateLayout" type="hidden" value="<%= privateLayout %>" />
 	<aui:input id="addLayoutParentPlid" name="parentPlid" type="hidden" value="<%= parentPlid %>" />
 	<aui:input id="addLayoutParentLayoutId" name="parentLayoutId" type="hidden" value="<%= parentLayoutId %>" />
 	<aui:input id="addLayoutType" name="type" type="hidden" value="portlet" />
 	<aui:input id="addLayoutPrototypeId" name="layoutPrototypeId" type="hidden" value="" />
 	<aui:input id="addLayoutExplicitCreation" name="explicitCreation" type="hidden" value="<%= true %>" />
+
+	<liferay-ui:error exception="<%= LayoutTypeException.class %>">
+
+		<%
+		LayoutTypeException lte = (LayoutTypeException)errorException;
+
+		String type = BeanParamUtil.getString(selLayout, request, "type");
+		%>
+
+		<c:if test="<%= lte.getType() == LayoutTypeException.FIRST_LAYOUT %>">
+			<liferay-ui:message arguments='<%= Validator.isNull(lte.getLayoutType()) ? type : "layout.types." + lte.getLayoutType() %>' key="the-first-page-cannot-be-of-type-x" />
+		</c:if>
+
+		<c:if test="<%= lte.getType() == LayoutTypeException.NOT_PARENTABLE %>">
+			<liferay-ui:message arguments="<%= type %>" key="pages-of-type-x-cannot-have-child-pages" />
+		</c:if>
+	</liferay-ui:error>
+
+	<liferay-ui:error exception="<%= LayoutNameException.class %>" message="please-enter-a-valid-name" />
+
+	<liferay-ui:error exception="<%= RequiredLayoutException.class %>">
+
+		<%
+		RequiredLayoutException rle = (RequiredLayoutException)errorException;
+		%>
+
+		<c:if test="<%= rle.getType() == RequiredLayoutException.AT_LEAST_ONE %>">
+			<liferay-ui:message key="you-must-have-at-least-one-page" />
+		</c:if>
+	</liferay-ui:error>
+
+	<aui:model-context model="<%= Layout.class %>" />
 
 	<aui:fieldset>
 		<div class="row-fluid">
@@ -82,19 +101,15 @@ String rootNodeName = liveGroup.getLayoutRootNodeName(privateLayout, locale);
 
 				<aui:input id="addLayoutHiddenCheckbox" label="hide-from-navigation-menu" name="hidden" />
 
-				<aui:fieldset cssClass="template-selector" label="templates">
-					<div class="btn-toolbar search-panel">
-						<aui:input cssClass="search-query span12" id="addLayoutSearchTemplates" label="" name="searchTemplates" placeholder="search" type="text"  />
-					</div>
-
+				<aui:fieldset cssClass="template-selector" label="type">
 					<aui:nav cssClass="nav-list" id="templateList">
 						<c:if test='<%= ArrayUtil.contains(PropsValues.LAYOUT_TYPES, "portlet") %>'>
-							<aui:nav-item cssClass="lfr-page-template" data-search="blank">
+							<aui:nav-item cssClass="lfr-page-template" data-search='<%= HtmlUtil.escape(LanguageUtil.get(pageContext, "empty-page")) %>'>
 								<div class="active lfr-page-template-title toggler-header toggler-header-expanded" data-type="portlet">
-									<aui:input checked="<%= true %>" id="addLayoutSelectedPageTemplateBlank" label="empty-layout" name="selectedPageTemplate" type="radio" />
+									<aui:input checked="<%= true %>" id="addLayoutSelectedPageTemplateBlank" label="empty-page" name="selectedPageTemplate" type="radio" />
 
 									<div class="lfr-page-template-description">
-										<small><%= LanguageUtil.get(pageContext, "empty-layout-description" ) %></small>
+										<small><%= LanguageUtil.get(pageContext, "empty-page-description" ) %></small>
 									</div>
 								</div>
 
@@ -140,10 +155,6 @@ String rootNodeName = liveGroup.getLayoutRootNodeName(privateLayout, locale);
 						%>
 
 						<%
-						LayoutLister layoutLister = new LayoutLister();
-
-						LayoutView layoutView = layoutLister.getLayoutView(scopeGroupId, privateLayout, rootNodeName, locale);
-
 						liferayPortletRequest.setAttribute(WebKeys.LAYOUT_LISTER_LIST, layoutView.getList());
 
 						for (int i = 0; i < PropsValues.LAYOUT_TYPES.length; i++) {
@@ -181,7 +192,9 @@ String rootNodeName = liveGroup.getLayoutRootNodeName(privateLayout, locale);
 								</div>
 
 								<div class="lfr-page-template-options toggler-content toggler-content-collapsed">
-									<liferay-util:include page="/html/portal/layout/edit/portlet.jsp" />
+									<liferay-util:include page="/html/portal/layout/edit/portlet_applications.jsp">
+										<liferay-util:param name="copyLayoutIdPrefix" value="addLayout" />
+									</liferay-util:include>
 								</div>
 							</aui:nav-item>
 						</c:if>
@@ -232,7 +245,6 @@ String rootNodeName = liveGroup.getLayoutRootNodeName(privateLayout, locale);
 		{
 			createPageMessage: '<%= LanguageUtil.get(pageContext, "loading") %>',
 			focusItem: A.one('#<portlet:namespace />addLayoutName'),
-			inputNode: A.one('#<portlet:namespace />addLayoutSearchTemplates'),
 			namespace: '<portlet:namespace />',
 			nodeList: A.one('#<portlet:namespace />templateList'),
 			nodeSelector: '.lfr-page-template',

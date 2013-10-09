@@ -15,9 +15,11 @@
 package com.liferay.portal.kernel.util;
 
 /**
- * @author Brian Wing Shun Chan
+ * @author     Brian Wing Shun Chan
+ * @deprecated
  */
 public class Randomizer_IW {
+
 	public static Randomizer_IW getInstance() {
 		return _instance;
 	}
@@ -30,4 +32,5 @@ public class Randomizer_IW {
 	}
 
 	private static Randomizer_IW _instance = new Randomizer_IW();
+
 }

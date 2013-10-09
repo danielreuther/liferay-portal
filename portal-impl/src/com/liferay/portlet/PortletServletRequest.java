@@ -268,14 +268,14 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 
 			return clientDataRequest.getMethod();
 		}
-		else if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
+
+		if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
 			return HttpMethods.GET;
 		}
-		else {
-			EventRequest eventRequest = _getEventRequest();
 
-			return eventRequest.getMethod();
-		}
+		EventRequest eventRequest = _getEventRequest();
+
+		return eventRequest.getMethod();
 	}
 
 	@Override
@@ -416,8 +416,13 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 
 	@Override
 	public HttpSession getSession(boolean create) {
-		HttpSession session = new PortletServletSession(
-			_request.getSession(create), _portletRequestImpl);
+		HttpSession session = _request.getSession(create);
+
+		if (session == null) {
+			return null;
+		}
+
+		session = new PortletServletSession(session, _portletRequestImpl);
 
 		if (ServerDetector.isJetty()) {
 			try {

@@ -53,20 +53,17 @@ String portletNameSpace = PortalUtil.getPortletNamespace(portletResource);
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryFoldersListingPanel" persistState="<%= true %>" title="folders-listing">
 			<aui:fieldset>
 				<aui:field-wrapper label="root-folder">
-					<portlet:renderURL var="viewFolderURL">
-						<portlet:param name="struts_action" value='<%= strutsAction + "/view" %>' />
-						<portlet:param name="folderId" value="<%= String.valueOf(rootFolderId) %>" />
-					</portlet:renderURL>
+					<div class="input-append">
+						<liferay-ui:input-resource id="rootFolderName" url="<%= rootFolderName %>" />
 
-					<aui:a href="<%= viewFolderURL %>" id="rootFolderName"><%= rootFolderName %></aui:a>
+						<aui:button name="openFolderSelectorButton" value="select" />
 
-					<aui:button name="openFolderSelectorButton" value="select" />
+						<%
+						String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
+						%>
 
-					<%
-					String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
-					%>
-
-					<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
+						<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
+					</div>
 				</aui:field-wrapper>
 
 				<aui:input name="preferences--showSubfolders--" type="checkbox" value="<%= showSubfolders %>" />
@@ -197,7 +194,7 @@ String portletNameSpace = PortalUtil.getPortletNamespace(portletResource);
 						nameValue: event.foldername
 					};
 
-					Liferay.Util.selectFolder(folderData, '<liferay-portlet:renderURL portletName="<%= portletResource %>"><portlet:param name="struts_action" value='<%= strutsAction + "/view" %>' /></liferay-portlet:renderURL>', '<portlet:namespace />');
+					Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
 				}
 			);
 		}
@@ -266,7 +263,7 @@ String portletNameSpace = PortalUtil.getPortletNamespace(portletResource);
 			valueMap.delta2 = fileEntriesPerPageInput.val();
 		}
 
-		var portlet = Liferay.Util.getTop().AUI().one('#p_p_id<%= portletNameSpace %>');
+		var portlet = Liferay.Util.getTop().AUI().one('#p_p_id<%= HtmlUtil.escapeJS(portletNameSpace) %>');
 
 		portlet.refreshURL = portlet.refreshURL.replace(
 			/(cur\d{1}|delta[12])(=|%3D)[^%&]+/g,

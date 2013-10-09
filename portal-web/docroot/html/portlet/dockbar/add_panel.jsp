@@ -36,7 +36,7 @@
 			boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.UPDATE);
 			%>
 
-			<c:if test="<%= !group.isControlPanel() && (!group.hasStagingGroup() || group.isStagingGroup()) && (hasLayoutAddPermission || hasLayoutUpdatePermission || (layoutTypePortlet.isCustomizable() && layoutTypePortlet.isCustomizedView() && hasLayoutCustomizePermission)) %>">
+			<c:if test="<%= !group.isControlPanel() && (hasLayoutAddPermission || hasLayoutUpdatePermission || (layoutTypePortlet.isCustomizable() && layoutTypePortlet.isCustomizedView() && hasLayoutCustomizePermission)) %>">
 				<div class="add-content-menu" id="<portlet:namespace />addPanelContainer">
 					<aui:button cssClass="close pull-right" name="closePanelAdd" value="&times;" />
 
@@ -62,9 +62,12 @@
 					}
 					%>
 
+					<h1><liferay-ui:message key="add" /></h1>
+
 					<liferay-ui:tabs
 						names="<%= StringUtil.merge(tabs1Names) %>"
 						refresh="<%= false %>"
+						type="pills"
 						value="<%= selectedTab %>"
 					>
 						<c:if test="<%= hasAddContentAndApplicationsPermission %>">
