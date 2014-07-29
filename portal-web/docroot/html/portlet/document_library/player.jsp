@@ -17,11 +17,12 @@
 <%@ include file="/html/portlet/document_library/init.jsp" %>
 
 <%
+String randomNamespace = GetterUtil.getString(request.getAttribute("view_file_entry.jsp-randomNamespace"));
+
 boolean supportedAudio = GetterUtil.getBoolean((String)request.getAttribute("view_file_entry.jsp-supportedAudio"));
 boolean supportedVideo = GetterUtil.getBoolean((String)request.getAttribute("view_file_entry.jsp-supportedVideo"));
 
 String[] previewFileURLs = (String[])request.getAttribute("view_file_entry.jsp-previewFileURLs");
-String previewId = (String)request.getAttribute("view_file_entry.jsp-previewId");
 String videoThumbnailURL = (String)request.getAttribute("view_file_entry.jsp-videoThumbnailURL");
 
 String mp3PreviewFileURL = null;
@@ -50,7 +51,7 @@ for (String previewFileURL : previewFileURLs) {
 		<aui:script use="aui-audio">
 			var audio = new A.Audio(
 				{
-					contentBox: '#<portlet:namespace /><%= previewId %>previewFileContent',
+					contentBox: '#<portlet:namespace /><%= randomNamespace %>previewFileContent',
 					fixedAttributes: {
 						allowfullscreen: 'true',
 						wmode: 'opaque'
@@ -71,7 +72,7 @@ for (String previewFileURL : previewFileURLs) {
 		<aui:script use="aui-base,aui-video">
 			new A.Video(
 				{
-					contentBox: '#<portlet:namespace /><%= previewId %>previewFileContent',
+					contentBox: '#<portlet:namespace /><%= randomNamespace %>previewFileContent',
 					fixedAttributes: {
 						allowfullscreen: 'true',
 						bgColor: '#000000',
